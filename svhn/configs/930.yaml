@@ -1,0 +1,41 @@
+seed: 42
+datapath: ./data
+val_split: 0.1
+
+
+fp32:
+  save_path: ./fp32
+  train:
+    lr: 0
+    bsz: 1024
+    epochs: 310 # last 10 epochs are extra decay
+    acc_thres: 0.92
+    cdr_args:
+      initial_learning_rate: 3.e-3
+      first_decay_steps: 50
+      t_mul: 1.0
+      m_mul: 0.7
+      alpha: 1.e-6
+
+fhq:
+  save_path: ./930_output
+  model:
+    a_init_bw: 4
+    k_init_bw: 4
+    bops_reg_factor: 0.35e-5
+    parallel_factors: [1,1,1]
+    k_bw_l1_reg_conv: 2.e-6
+    k_bw_l1_reg_dense: 2.e-6
+    a_bw_l1_reg: 2.e-6
+  train:
+    lr: 0
+    bsz: 1024
+    epochs: 310 # last 10 epochs are extra decay
+    acc_thres: 0.895
+    cdr_args:
+      initial_learning_rate: 1.e-3
+      first_decay_steps: 20
+      t_mul: 1.0
+      m_mul: 0.7
+      alpha: 1.e-6
+

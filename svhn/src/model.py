@@ -80,7 +80,7 @@ def get_model_fhq(
     act_q_conf = dict(
         init_bw=init_bw_k,
         skip_dims='all',
-        rnd_strategy='auto',  # 'auto': 'floor' for layer without bias, 'standard_round' otherwise
+        rnd_strategy='auto',  # 'auto': 'floor' for layer without bias except HActivation layers, 'standard_round' otherwise
         exact_q_value=False,
         dtype=None,
         bw_clip=(-23, 23),

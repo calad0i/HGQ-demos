@@ -20,7 +20,7 @@ fp32:
 
 
 fhq:
-  save_path: ./202_output
+  save_path: ./203_output
   train:
     epochs: 8128 # (2^7-1)*64
     mse_thres: 4.2
@@ -32,7 +32,7 @@ fhq:
       alpha: 1.e-6
     bsz: 16384
   model:
-    bops_reg_factor: 1.5e-5
+    bops_reg_factor: 1.45e-5
     l1_cc: 2.e-6
     l1_dc: 2.e-6
     l1_act: 2.e-6

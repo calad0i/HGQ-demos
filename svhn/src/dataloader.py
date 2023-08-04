@@ -52,17 +52,16 @@ def get_data(data_path, val_split=0.2, seed=42, mmap_location='/cpu:0'):
     y_val = raw_y_val.ravel()
     y_test = raw_y_test.ravel()
 
-    y_train %= 10
+    y_train %= 10  # type: ignore
     y_val %= 10
     y_test %= 10
 
-
-    with tf.device(mmap_location): # type: ignore
+    with tf.device(mmap_location):  # type: ignore
         X_train = tf.convert_to_tensor(X_train, dtype=tf.float16)
         y_train = tf.convert_to_tensor(y_train, dtype=tf.int8)
         X_val = tf.convert_to_tensor(X_val, dtype=tf.float16)
         y_val = tf.convert_to_tensor(y_val, dtype=tf.int8)
         X_test = tf.convert_to_tensor(X_test, dtype=tf.float16)
         y_test = tf.convert_to_tensor(y_test, dtype=tf.int8)
-        
+
     return (X_train, y_train), (X_val, y_val), (X_test, y_test)

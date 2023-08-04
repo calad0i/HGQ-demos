@@ -20,10 +20,10 @@ fp32:
 
 
 fhq:
-  save_path: ./203_output
+  save_path: ./213_output
   train:
     epochs: 8128 # (2^7-1)*64
-    mse_thres: 4.3
+    mse_thres: 5
     cdr_args:
       initial_learning_rate: 3.e-3
       first_decay_steps: 64
@@ -32,7 +32,7 @@ fhq:
       alpha: 1.e-6
     bsz: 16384
   model:
-    bops_reg_factor: 1.8e-5
+    bops_reg_factor: 4.e-5
     l1_cc: 2.e-6
     l1_dc: 2.e-6
     l1_act: 2.e-6

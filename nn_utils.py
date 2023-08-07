@@ -25,7 +25,7 @@ from keras.saving.legacy import hdf5_format
 from keras.layers.convolutional.base_conv import Conv
 from keras.layers import Dense
 
-from FHQ.bops import compute_bops
+from HGQ.bops import compute_bops
 
 
 class NumpyFloatValuesEncoder(json.JSONEncoder):

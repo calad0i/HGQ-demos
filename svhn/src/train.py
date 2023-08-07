@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 
 from nn_utils import PBarCallback, SaveTopN, plot_history, compute_bops, save_history, load_history, absorb_batchNorm, get_best_ckpt
 
-from FHQ.bops import compute_bops, FreeBOPs, ResetMinMax
+from HGQ.bops import compute_bops, FreeBOPs, ResetMinMax
 
 
 
@@ -57,7 +57,7 @@ def train_fp32(model, X, Y, Xv, Yv, save_path, cdr_args: dict, bsz: int, epochs:
     return model, history
 
 
-def train_fhq(model, model_fp32, X, Y, Xv, Yv, Xs, Ys, save_path:Path, cdr_args:dict, bsz:int, epochs:int, acc_thres: float):
+def train_hgq(model, model_fp32, X, Y, Xv, Yv, Xs, Ys, save_path:Path, cdr_args:dict, bsz:int, epochs:int, acc_thres: float):
 
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
@@ -68,12 +68,12 @@ def train_fhq(model, model_fp32, X, Y, Xv, Yv, Xs, Ys, save_path:Path, cdr_args:
     absorb_batchNorm(model, model_fp32)
     
     pred = model.predict(Xs, batch_size=2048, verbose=0)
-    fhq_acc_1 = np.mean(np.argmax(pred, axis=1) == Ys.numpy().ravel())
-    print(f'pre-training FHQ accuracy: {fhq_acc_1:.2%}')
+    hgq_acc_1 = np.mean(np.argmax(pred, axis=1) == Ys.numpy().ravel())
+    print(f'pre-training HGQ accuracy: {hgq_acc_1:.2%}')
     
     with open(save_path / 'pretrain_acc.txt', 'w') as f:
         f.write(f'FP32 accuracy: {acc_fp32:.2%}\n')
-        f.write(f'pre-training FHQ accuracy: {fhq_acc_1:.2%}\n')
+        f.write(f'pre-training HGQ accuracy: {hgq_acc_1:.2%}\n')
     
     print('Compiling model & registering callbacks...')
     opt = tf.keras.optimizers.Adam(1, amsgrad=True)

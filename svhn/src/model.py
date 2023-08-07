@@ -3,9 +3,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from FHQ.utils import L1
-from FHQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
-from FHQ import HConv2D, HDense, HQuantize, PMaxPool2D, PReshape, PFlatten
+from HGQ.utils import L1
+from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
+from HGQ import HConv2D, HDense, HQuantize, PMaxPool2D, PReshape, PFlatten
 
 
 def get_model_fp32(renorm=False):
@@ -45,7 +45,7 @@ def get_model_fp32(renorm=False):
     return model
 
 
-def get_model_fhq(
+def get_model_hgq(
     init_bw_k=4,
     init_bw_a=4,
     bops_reg_factor=1e-5,

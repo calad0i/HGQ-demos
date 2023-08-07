@@ -65,13 +65,13 @@ def get_model_fp32(mask12, mask13, mask23):
     return model
 
 
-from FHQ.layers import Signature, HAdd, HConv1D, HDense, HActivation
-from FHQ.layers import PReshape
-from FHQ.utils import L1
-from FHQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
+from HGQ.layers import Signature, HAdd, HConv1D, HDense, HActivation
+from HGQ.layers import PReshape
+from HGQ.utils import L1
+from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
 
 
-def get_model_fhq(mask12, mask13, mask23, conf):
+def get_model_hgq(mask12, mask13, mask23, conf):
 
     bops_reg_factor = conf.bops_reg_factor
     l1_cc = conf.l1_cc
@@ -156,9 +156,9 @@ def get_model_fhq(mask12, mask13, mask23, conf):
     _input_m2 = signature('M2')(input_m2)
     _input_m3 = signature('M3')(input_m3)
 
-    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c,pre_activation_quantizer_config=act_q_conf_hg)(_input_m1)
-    m2_c = HConv1D(1, 3, strides=1, name='m2_conv', **aio_c,pre_activation_quantizer_config=act_q_conf_hg)(_input_m2)
-    m3_c = HConv1D(1, 3, strides=1, name='m3_conv', **aio_c,pre_activation_quantizer_config=act_q_conf_hg)(_input_m3)
+    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m1)
+    m2_c = HConv1D(1, 3, strides=1, name='m2_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m2)
+    m3_c = HConv1D(1, 3, strides=1, name='m3_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m3)
 
     m1_c = PReshape((50,))(m1_c)
     m2_c = PReshape((50,))(m2_c)

@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     model = get_model(conf.model.bops_reg_factor, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw)
 
-    from FHQ.bops import compute_bops
+    from HGQ.bops import compute_bops
     bops = compute_bops(model, X_train_val, bsz=664000)
     print(f'Init BOPS: {bops}')
 

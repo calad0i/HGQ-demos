@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 
-from FHQ.hls4ml_hook import convert_from_fhq_model
+from HGQ.hls4ml_hook import convert_from_hgq_model
 
 
 def syn_test(model, weight_path, conf, X, Y, N=None):
@@ -14,7 +14,7 @@ def syn_test(model, weight_path, conf, X, Y, N=None):
     hls_prj_path = save_path / 'hls4ml_prj'
 
     print('Converting to hls4ml model...')
-    model_hls = convert_from_fhq_model(
+    model_hls = convert_from_hgq_model(
         model,
         hls_config=None,
         output_dir=str(hls_prj_path),

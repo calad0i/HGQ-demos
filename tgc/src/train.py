@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from nn_utils import PBarCallback, SaveTopN, save_history, plot_history, absorb_batchNorm
 
-from FHQ.bops import ResetMinMax, FreeBOPs
+from HGQ.bops import ResetMinMax, FreeBOPs
 
 
 def train_fp32(model: keras.Model, X, Y, Xv, Yv, conf):
@@ -43,7 +43,7 @@ def train_fp32(model: keras.Model, X, Y, Xv, Yv, conf):
     return model, history
 
 
-def train_fhq(model: keras.Model, model_fp32, X, Y, Xv, Yv, Xs, Ys, conf):
+def train_hgq(model: keras.Model, model_fp32, X, Y, Xv, Yv, Xs, Ys, conf):
 
     absorb_batchNorm(model, model_fp32)
 
@@ -55,15 +55,15 @@ def train_fhq(model: keras.Model, model_fp32, X, Y, Xv, Yv, Xs, Ys, conf):
 
     pred = model.predict(Xs, batch_size=16384, verbose=0)  # type: ignore
     diff = pred.ravel() - Ys.numpy().ravel()
-    std_fhq = np.sqrt(np.mean(diff**2))
-    std_cutoff_fhq = np.sqrt(np.mean((diff[abs(diff) < 30])**2))
-    print(f'pre-training FHQ std: {std_fhq:.2f} ({std_cutoff_fhq:.2f})')
+    std_hgq = np.sqrt(np.mean(diff**2))
+    std_cutoff_hgq = np.sqrt(np.mean((diff[abs(diff) < 30])**2))
+    print(f'pre-training HGQ std: {std_hgq:.2f} ({std_cutoff_hgq:.2f})')
 
     save_path = Path(conf.save_path)
     save_path.mkdir(exist_ok=True, parents=True)
     with open(save_path / 'std.txt', 'w') as f:
-        f.write(f'FP32 std: {std_fhq:.2f} ({std_cutoff_fhq:.2f})\n')
-        f.write(f'pre-training FHQ std: {std_fhq:.2f} ({std_cutoff_fhq:.2f})\n')
+        f.write(f'FP32 std: {std_hgq:.2f} ({std_cutoff_hgq:.2f})\n')
+        f.write(f'pre-training HGQ std: {std_hgq:.2f} ({std_cutoff_hgq:.2f})\n')
 
     cdr = keras.experimental.CosineDecayRestarts(**conf.train.cdr_args)
     scheduler = keras.callbacks.LearningRateScheduler(cdr)

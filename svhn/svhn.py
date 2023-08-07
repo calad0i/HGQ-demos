@@ -16,12 +16,12 @@ from pathlib import Path
 
 from nn_utils import set_seed, get_best_ckpt
 from src.dataloader import get_data
-from src.model import get_model_fp32, get_model_fhq
-from src.train import train_fp32, train_fhq
+from src.model import get_model_fp32, get_model_hgq
+from src.train import train_fp32, train_hgq
 from src.test import test
 from src.syn_test import syn_test
 
-from FHQ.bops import compute_bops
+from HGQ.bops import compute_bops
 
 import omegaconf
 import argparse
@@ -32,12 +32,12 @@ if __name__ == '__main__':
     parser.add_argument('--config', '-c', type=str)
     parser.add_argument('--run', '-r', nargs='*', type=str, default=['all'])
     parser.add_argument('--ckpt_fp32', '-kf', type=str, default=None)
-    parser.add_argument('--ckpt_fhq', '-kq', type=str, default=None)
+    parser.add_argument('--ckpt_hgq', '-kq', type=str, default=None)
     args = parser.parse_args()
 
     conf = omegaconf.OmegaConf.load(args.config)
     cfp32 = conf.fp32
-    cfhq = conf.fhq
+    chgq = conf.hgq
 
     print('Setting seed...')
     set_seed(conf.seed)
@@ -50,14 +50,14 @@ if __name__ == '__main__':
     print('Creating models...')
     model_fp32 = get_model_fp32(renorm=False)
 
-    model_fhq = get_model_fhq(
-        init_bw_k=cfhq.model.a_init_bw,
-        init_bw_a=cfhq.model.k_init_bw,
-        bops_reg_factor=cfhq.model.bops_reg_factor,
-        parallel_factors=cfhq.model.parallel_factors,
-        l1_cc=cfhq.model.k_bw_l1_reg_conv,
-        l1_dc=cfhq.model.k_bw_l1_reg_dense,
-        l1_act=cfhq.model.a_bw_l1_reg,
+    model_hgq = get_model_hgq(
+        init_bw_k=cHGQ.model.a_init_bw,
+        init_bw_a=cHGQ.model.k_init_bw,
+        bops_reg_factor=cHGQ.model.bops_reg_factor,
+        parallel_factors=cHGQ.model.parallel_factors,
+        l1_cc=cHGQ.model.k_bw_l1_reg_conv,
+        l1_dc=cHGQ.model.k_bw_l1_reg_dense,
+        l1_act=cHGQ.model.a_bw_l1_reg,
     )
 
     if 'all' in args.run or 'train_fp32' in args.run:
@@ -75,13 +75,13 @@ if __name__ == '__main__':
                        )
 
     set_seed(conf.seed)
-    if 'all' in args.run or 'train_fhq' in args.run:
+    if 'all' in args.run or 'train_hgq' in args.run:
         ckpt_fp32 = args.ckpt_fp32 or get_best_ckpt(Path(conf.fp32.save_path) / 'ckpts')
         print(f'Using checkpoint: {ckpt_fp32}')
         model_fp32.load_weights(ckpt_fp32)
 
-        print('Phase: train_fhq')
-        _ = train_fhq(model_fhq,
+        print('Phase: train_hgq')
+        _ = train_hgq(model_hgq,
                       model_fp32,
                       X_train,
                       y_train,
@@ -89,28 +89,28 @@ if __name__ == '__main__':
                       y_val,
                       X_test,
                       y_test,
-                      save_path=cfhq.save_path,
-                      cdr_args=cfhq.train.cdr_args,
-                      bsz=cfhq.train.bsz,
-                      epochs=cfhq.train.epochs,
-                      acc_thres=cfhq.train.acc_thres
+                      save_path=cHGQ.save_path,
+                      cdr_args=cHGQ.train.cdr_args,
+                      bsz=cHGQ.train.bsz,
+                      epochs=cHGQ.train.epochs,
+                      acc_thres=cHGQ.train.acc_thres
                       )
 
     bops_computed = False
-    ckpt_fhq = args.ckpt_fhq or get_best_ckpt(Path(cfhq.save_path) / 'ckpts')
+    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(cHGQ.save_path) / 'ckpts')
     if 'all' in args.run or 'test' in args.run:
         print('Phase: test')
-        print(f'Using checkpoint: {ckpt_fhq}')
-        test(model_fhq, ckpt_fhq, cfhq.save_path, X_train, X_val, X_test, y_test)
+        print(f'Using checkpoint: {ckpt_hgq}')
+        test(model_hgq, ckpt_hgq, cHGQ.save_path, X_train, X_val, X_test, y_test)
         bops_computed = True
 
     if 'all' in args.run or 'syn' in args.run:
         print('Phase: syn')
-        print(f'Using checkpoint: {ckpt_fhq}')
+        print(f'Using checkpoint: {ckpt_hgq}')
         if not bops_computed:
             print('Computing BOPS...')
-            model_fhq.load_weights(ckpt_fhq)
-            _ = compute_bops(model_fhq, X_train, bsz=2048, verbose=False)
-            bops = compute_bops(model_fhq, X_val, bsz=2048, rst=False)
+            model_HGQ.load_weights(ckpt_hgq)
+            _ = compute_bops(model_hgq, X_train, bsz=2048, verbose=False)
+            bops = compute_bops(model_hgq, X_val, bsz=2048, rst=False)
             print(f'BOPS: {bops}')
-        syn_test(model_fhq, ckpt_fhq, cfhq.save_path, X_test, y_test)
+        syn_test(model_hgq, ckpt_hgq, cHGQ.save_path, X_test, y_test)

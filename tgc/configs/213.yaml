@@ -19,7 +19,7 @@ fp32:
     bsz: 16384
 
 
-fhq:
+hgq:
   save_path: ./213_output
   train:
     epochs: 8128 # (2^7-1)*64

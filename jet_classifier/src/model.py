@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from FHQ import HDense, HQuantize
-from FHQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
-from FHQ.utils import L1
+from HGQ import HDense, HQuantize
+from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
+from HGQ.utils import L1
 
 
 def get_model(bops_reg_factor, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2):

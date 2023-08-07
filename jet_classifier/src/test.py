@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 
-from FHQ.hls4ml_hook import convert_from_fhq_model
+from HGQ.hls4ml_hook import convert_from_hgq_model
 
 from matplotlib import pyplot as plt
 from nn_utils import plot_history, compute_bops, load_history

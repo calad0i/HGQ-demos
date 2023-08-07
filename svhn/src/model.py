@@ -79,7 +79,7 @@ def get_model_fhq(
 
     act_q_conf = dict(
         init_bw=init_bw_k,
-        skip_dims='all',
+        skip_dims='except_last',
         rnd_strategy='auto',  # 'auto': 'floor' for layer without bias except HActivation layers, 'standard_round' otherwise
         exact_q_value=False,
         dtype=None,

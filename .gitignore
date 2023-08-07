@@ -10,7 +10,7 @@ fp32/
 *.ipynb
 
 # Outputs
-hls4ml_prj/
+hls4ml_prj*/
 ckpts/
 
 # Input data

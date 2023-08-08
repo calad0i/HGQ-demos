@@ -109,7 +109,7 @@ if __name__ == '__main__':
         print(f'Using checkpoint: {ckpt_hgq}')
         if not bops_computed:
             print('Computing BOPS...')
-            model_HGQ.load_weights(ckpt_hgq)
+            model_hgq.load_weights(ckpt_hgq)
             _ = compute_bops(model_hgq, X_train, bsz=2048, verbose=False)
             bops = compute_bops(model_hgq, X_val, bsz=2048, rst=False)
             print(f'BOPS: {bops}')

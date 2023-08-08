@@ -52,10 +52,10 @@ if __name__ == '__main__':
     else:
         model_fp32 = get_model_fp32(None, None, None)
 
-    if conf.HGQ.model.masking:
-        model_hgq = get_model_hgq(mask12, mask13, mask23, conf=conf.HGQ.model)
+    if conf.hgq.model.masking:
+        model_hgq = get_model_hgq(mask12, mask13, mask23, conf=conf.hgq.model)
     else:
-        model_hgq = get_model_hgq(None, None, None, conf=conf.HGQ.model)
+        model_hgq = get_model_hgq(None, None, None, conf=conf.hgq.model)
 
     if 'all' in args.run or 'train_fp32' in args.run:
         print('Phase: train_fp32')
@@ -69,20 +69,20 @@ if __name__ == '__main__':
         print('Phase: train_hgq')
         _ = train_hgq(model_hgq, model_fp32, X_train, y_train, X_val, y_val, X_test, y_test, conf.hgq)
 
-    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(conf.HGQ.save_path) / 'ckpts', take_min=True)
+    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(conf.hgq.save_path) / 'ckpts', take_min=True)
     bops_computed = False
 
     if 'all' in args.run or 'test' in args.run:
         print('Phase: test')
         print(f'Using checkpoint: {ckpt_hgq}')
-        test(model_hgq, ckpt_hgq, conf.HGQ.save_path, X_train, X_val, X_test, y_test)
+        test(model_hgq, ckpt_hgq, conf.hgq.save_path, X_train, X_val, X_test, y_test)
         bops_computed = True
 
     if 'all' in args.run or 'syn' in args.run:
         print('Phase: syn_test')
         print(f'Using checkpoint: {ckpt_hgq}')
         if not bops_computed:
-            model_HGQ.load_weights(ckpt_hgq)
+            model_hgq.load_weights(ckpt_hgq)
             compute_bops(model_hgq, X_train, bsz=16384, verbose=False)
             bops = compute_bops(model_hgq, X_val, bsz=16384, rst=False)
             print(f'BOPS: {bops}')

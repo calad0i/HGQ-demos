@@ -6,7 +6,7 @@ from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_
 from HGQ.utils import L1
 
 
-def get_model(bops_reg_factor, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2):
+def get_model(beta, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2):
 
     ker_q_conf = dict(
         init_bw=w_init_bw,
@@ -35,11 +35,11 @@ def get_model(bops_reg_factor, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_in
     set_default_pre_activation_quantizer_config(act_q_conf)
 
     model = keras.Sequential([
-        HQuantize(input_shape=(16,), name='inp_q', bops_reg_factor=bops_reg_factor),
-        HDense(64, activation='relu', name='dense_1', bops_reg_factor=bops_reg_factor),
-        HDense(32, activation='relu', name='dense_2', bops_reg_factor=bops_reg_factor),
-        HDense(32, activation='relu', name='dense_3', bops_reg_factor=bops_reg_factor),
-        HDense(5, name='dense_4', bops_reg_factor=bops_reg_factor),
+        HQuantize(input_shape=(16,), name='inp_q', beta=beta),
+        HDense(64, activation='relu', name='dense_1', beta=beta),
+        HDense(32, activation='relu', name='dense_2', beta=beta),
+        HDense(32, activation='relu', name='dense_3', beta=beta),
+        HDense(5, name='dense_4', beta=beta),
     ])
 
     return model

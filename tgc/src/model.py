@@ -73,7 +73,7 @@ from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_
 
 def get_model_hgq(mask12, mask13, mask23, conf):
 
-    bops_reg_factor = conf.bops_reg_factor
+    beta = conf.beta
     l1_cc = conf.l1_cc
     l1_dc = conf.l1_dc
     l1_act = conf.l1_act
@@ -139,7 +139,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
     set_default_pre_activation_quantizer_config(act_q_conf)
 
     aio_c = {
-        'bops_reg_factor': bops_reg_factor,
+        'beta': beta,
         'kernel_quantizer_config': ker_q_conf_c,
         'activation': None,
         'use_bias': False,
@@ -148,7 +148,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
     }
 
     aio_d = {
-        'bops_reg_factor': bops_reg_factor,
+        'beta': beta,
         'kernel_quantizer_config': ker_q_conf_d
     }
 
@@ -164,17 +164,17 @@ def get_model_hgq(mask12, mask13, mask23, conf):
     m2_c = PReshape((50,))(m2_c)
     m3_c = PReshape((50,))(m3_c)
 
-    m1_a = HActivation('tanh', bops_reg_factor=bops_reg_factor, name='act1')(m1_c)
+    m1_a = HActivation('tanh', beta=beta, name='act1')(m1_c)
     m1_o = HDense(50, name='map12', kernel_constraint=Diag(mask12) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m1_a)
 
-    m2_a = HActivation('tanh', bops_reg_factor=bops_reg_factor, name='act12')(HAdd(name='add12', bops_reg_factor=bops_reg_factor)([m1_o, m2_c]))
+    m2_a = HActivation('tanh', beta=beta, name='act12')(HAdd(name='add12', beta=beta)([m1_o, m2_c]))
     m2_o = HDense(50, name='map23', kernel_constraint=Diag(mask23) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m2_a)
 
     m1_o2 = HDense(50, name='map13', kernel_constraint=Diag(mask13) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m1_a)
-    m3_o = (HAdd(name='add13', bops_reg_factor=bops_reg_factor)([m1_o2, m3_c]))
-    m3_o = (HAdd(name='add23', bops_reg_factor=bops_reg_factor)([m2_o, m3_o]))
+    m3_o = (HAdd(name='add13', beta=beta)([m1_o2, m3_c]))
+    m3_o = (HAdd(name='add23', beta=beta)([m2_o, m3_o]))
 
-    feature_out = HActivation('tanh', bops_reg_factor=bops_reg_factor, name='feature_out')(m3_o)
+    feature_out = HActivation('tanh', beta=beta, name='feature_out')(m3_o)
 
     dd1 = HDense(28, name='t1', **aio_d, activation='relu', pre_activation_quantizer_config=act_q_conf_hg)(feature_out)
     dd1 = HDense(14, name='t2', **aio_d, activation='relu', pre_activation_quantizer_config=act_q_conf_hg)(dd1)

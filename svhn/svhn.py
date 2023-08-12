@@ -53,7 +53,7 @@ if __name__ == '__main__':
     model_hgq = get_model_hgq(
         init_bw_k=cHGQ.model.a_init_bw,
         init_bw_a=cHGQ.model.k_init_bw,
-        bops_reg_factor=cHGQ.model.bops_reg_factor,
+        beta=cHGQ.model.beta,
         parallel_factors=cHGQ.model.parallel_factors,
         l1_cc=cHGQ.model.k_bw_l1_reg_conv,
         l1_dc=cHGQ.model.k_bw_l1_reg_dense,

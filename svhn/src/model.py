@@ -48,7 +48,7 @@ def get_model_fp32(renorm=False):
 def get_model_hgq(
     init_bw_k=4,
     init_bw_a=4,
-    bops_reg_factor=1e-5,
+    beta=1e-5,
     parallel_factors=(1, 1, 1),
     l1_cc=2e-6,
     l1_dc=2e-6,
@@ -94,13 +94,13 @@ def get_model_hgq(
     def cfg(): return {
         'kernel_regularizer': keras.regularizers.l1(1e-4),
         'kernel_initializer': 'lecun_uniform',
-        'bops_reg_factor': bops_reg_factor,
+        'beta': beta,
         'pre_activation_quantizer_config': act_q_conf,
     }
 
     model = keras.models.Sequential([
         keras.layers.InputLayer(input_shape=(32, 32, 3)),
-        HQuantize(bops_reg_factor=bops_reg_factor, name='q_inp'),
+        HQuantize(beta=beta, name='q_inp'),
 
         HConv2D(16, (3, 3), padding='valid', name='conv1', activation='relu', **cfg(), parallel_factor=parallel_factors[0], kernel_quantizer_config=ker_q_conf_c),
         PMaxPool2D((2, 2), name='maxpool1'),

@@ -32,7 +32,7 @@ hgq:
       alpha: 1.e-6
     bsz: 16384
   model:
-    bops_reg_factor: 1.5e-5
+    beta: 1.5e-5
     l1_cc: 2.e-6
     l1_dc: 2.e-6
     l1_act: 2.e-6

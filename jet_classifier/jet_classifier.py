@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     X_train_val, X_test, y_train_val, y_test = get_data(data_path, mmap_location='/gpu:0', seed=seed)
 
-    model = get_model(conf.model.bops_reg_factor, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw)
+    model = get_model(conf.model.beta, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw)
 
     from HGQ.bops import compute_bops
     bops = compute_bops(model, X_train_val, bsz=664000)

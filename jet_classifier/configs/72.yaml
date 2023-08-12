@@ -3,7 +3,7 @@ data_path: 'data/inp_data.zst'
 save_path: './72_output'
 
 model:
-  bops_reg_factor: 5.5e-5
+  beta: 5.5e-5
   a_bw_l1_reg: 0.000002
   w_bw_l1_reg: 0.000002
   w_init_bw: 2

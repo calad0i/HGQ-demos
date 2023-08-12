@@ -23,7 +23,7 @@ hgq:
   model:
     a_init_bw: 4
     k_init_bw: 4
-    bops_reg_factor: 0.4e-5
+    beta: 0.4e-5
     parallel_factors: [1,1,1]
     k_bw_l1_reg_conv: 2.e-6
     k_bw_l1_reg_dense: 2.e-6

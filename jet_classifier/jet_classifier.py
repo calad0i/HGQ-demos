@@ -30,11 +30,13 @@ if __name__ == '__main__':
     parser.add_argument('--config', '-c', type=str)
     parser.add_argument('--run', '-r', nargs='*', type=str, default=['all'])
     parser.add_argument('--ckpt', '-k', type=str, default=None)
+    parser.add_argument('--softmax', '-s', action='store_true', help='Add final softmax layer to the model. For comparasion only.')
     args = parser.parse_args()
 
     path = Path(args.config)
 
     conf = omegaconf.OmegaConf.load(path)
+    uniform = hasattr(conf.model, 'uniform') and conf.model.uniform
 
     seed = conf.seed
 
@@ -45,7 +47,7 @@ if __name__ == '__main__':
 
     X_train_val, X_test, y_train_val, y_test = get_data(data_path, mmap_location='/gpu:0', seed=seed)
 
-    model = get_model(conf.model.beta, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw)
+    model = get_model(conf.model.beta, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw, uniform=uniform)
 
     from HGQ.bops import compute_bops
     bops = compute_bops(model, X_train_val, bsz=664000)
@@ -62,6 +64,7 @@ if __name__ == '__main__':
               bsz=conf.train.bsz,
               val_split=conf.train.val_split,
               acc_thres=conf.train.acc_thres,
+              calibrated_bops=False if not uniform else 10000,
               )
 
     bops_computed = False
@@ -76,9 +79,24 @@ if __name__ == '__main__':
         print('Phase: syn')
         ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
         if not bops_computed:
-            print('Computing BOPS...')
+            print(f'Using checkpoint: {ckpt_path}')
             model.load_weights(ckpt_path)
+            if args.softmax:
+                from HGQ.layers import HActivation
+                from HGQ import get_default_pre_activation_quantizer_config
+                pa_conf = get_default_pre_activation_quantizer_config()
+                pa_conf['init_bw'] = 10
+                pa_conf['skip_dims'] = (0,)
+                print(pa_conf)
+                softmax = HActivation('softmax', 0, pa_conf)
+                softmax.build((None, 5))
+                model.add(softmax)
+            print('Computing BOPS...')
             bops = compute_bops(model, X_train_val, bsz=664000)
+            print(softmax.pre_activation_quantizer._min)
+            print(softmax.pre_activation_quantizer._max)
+            if args.softmax:
+                softmax.pre_activation_quantizer._min.assign(tf.constant([[0, 0, 0, 0, 0]], dtype=tf.float32))
+                softmax.pre_activation_quantizer._max.assign(tf.constant([[1, 1, 1, 1, 1]], dtype=tf.float32))
             print(f'BOPS: {bops}')
-        print(f'Using checkpoint: {ckpt_path}')
-        syn_test(model, Path(ckpt_path), save_path, X_test, y_test, N=None)
+        syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)

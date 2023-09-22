@@ -1,14 +1,14 @@
 import tensorflow as tf
 from pathlib import Path
 
-from HGQ.bops import FreeBOPs, ResetMinMax
+from HGQ.bops import FreeBOPs, ResetMinMax, CalibratedBOPs
 from nn_utils import PBarCallback, SaveTopN, save_history
 
 
 from HGQ import set_default_kernel_quantizer_config
 
 
-def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_split: float, acc_thres: float):
+def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_split: float, acc_thres: float, calibrated_bops=None):
 
     print('Compiling model...')
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -17,9 +17,10 @@ def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_sp
     model.compile(optimizer=opt, loss=loss, metrics=metrics)
 
     print('Registering callbacks...')
-    bops = FreeBOPs()
-
-    pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%}')
+    bops = FreeBOPs() if not calibrated_bops else CalibratedBOPs(X[:calibrated_bops])
+    cos = tf.keras.experimental.CosineDecay(lr, epochs)
+    sched = tf.keras.callbacks.LearningRateScheduler(cos)
+    pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%} - lr: {lr:.2e}')
     rst = ResetMinMax()
     save = SaveTopN(
         metric_fn=lambda x: (min(x['val_accuracy'], x['accuracy']) - 0.71) / x['multi'],
@@ -29,7 +30,7 @@ def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_sp
         fname_format='epoch={epoch}-acc={accuracy:.2%}-val_acc={val_accuracy:.2%}-BOPs={multi}-metric={metric:.4e}.h5'
     )
 
-    callbacks = [bops, pbar, save, rst]
+    callbacks = [sched, bops, pbar, save, rst]
 
     print('Start training...')
     model.fit(X, Y, epochs=epochs, batch_size=bsz, validation_split=val_split, verbose=0, callbacks=callbacks)  # type: ignore

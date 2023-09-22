@@ -6,11 +6,11 @@ from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_
 from HGQ.utils import L1
 
 
-def get_model(beta, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2):
+def get_model(beta, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2, uniform=False):
 
     ker_q_conf = dict(
         init_bw=w_init_bw,
-        skip_dims=None,
+        skip_dims=None if not uniform else 'all',
         rnd_strategy='standard_round',
         exact_q_value=True,
         dtype=None,
@@ -21,7 +21,7 @@ def get_model(beta, a_bw_l1_reg=0., w_bw_l1_reg=0., a_init_bw=2, w_init_bw=2):
 
     act_q_conf = dict(
         init_bw=a_init_bw,
-        skip_dims=(0,),  # same as 'batch'
+        skip_dims=(0,) if not uniform else 'all',
         rnd_strategy='auto',  # 'auto': 'floor' for layer without bias, 'standard_round' otherwise
         exact_q_value=False,
         dtype=None,

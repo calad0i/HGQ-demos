@@ -17,7 +17,7 @@ def test(model, weight_path, save_path: Path, Xt, X, Y):
     plt.savefig(save_path / 'accuracy.pdf', dpi=300)
 
     fig, ax = plot_history(history, ('multi',), ylabel='BOPs')
-    ax.set_ylim(1500, 4000)
+    ax.set_ylim(np.min(history['multi'])*0.7, np.min(history['multi'])*2)
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
     mul_bops = compute_bops(model, Xt, bsz=664000)

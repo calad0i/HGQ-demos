@@ -4,11 +4,9 @@ import numpy as np
 from HGQ.hls4ml_hook import convert_from_hgq_model
 
 
-def syn_test(model, weight_path, save_path: Path, X, Y, N=None):
+def syn_test(model, save_path: Path, X, Y, N=None, softmax=False):
 
-    model.load_weights(weight_path)
-
-    hls_prj_path = save_path / 'hls4ml_prj'
+    hls_prj_path = save_path / ('hls4ml_prj' if not softmax else 'hls4ml_prj_softmax')
 
     print('Converting to hls4ml model...')
     model_hls = convert_from_hgq_model(

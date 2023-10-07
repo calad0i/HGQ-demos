@@ -51,13 +51,13 @@ if __name__ == '__main__':
     model_fp32 = get_model_fp32(renorm=False)
 
     model_hgq = get_model_hgq(
-        init_bw_k=cHGQ.model.a_init_bw,
-        init_bw_a=cHGQ.model.k_init_bw,
-        beta=cHGQ.model.beta,
-        parallel_factors=cHGQ.model.parallel_factors,
-        l1_cc=cHGQ.model.k_bw_l1_reg_conv,
-        l1_dc=cHGQ.model.k_bw_l1_reg_dense,
-        l1_act=cHGQ.model.a_bw_l1_reg,
+        init_bw_k=chgq.model.a_init_bw,
+        init_bw_a=chgq.model.k_init_bw,
+        beta=chgq.model.beta,
+        parallel_factors=chgq.model.parallel_factors,
+        l1_cc=chgq.model.k_bw_l1_reg_conv,
+        l1_dc=chgq.model.k_bw_l1_reg_dense,
+        l1_act=chgq.model.a_bw_l1_reg,
     )
 
     if 'all' in args.run or 'train_fp32' in args.run:
@@ -89,19 +89,19 @@ if __name__ == '__main__':
                       y_val,
                       X_test,
                       y_test,
-                      save_path=cHGQ.save_path,
-                      cdr_args=cHGQ.train.cdr_args,
-                      bsz=cHGQ.train.bsz,
-                      epochs=cHGQ.train.epochs,
-                      acc_thres=cHGQ.train.acc_thres
+                      save_path=chgq.save_path,
+                      cdr_args=chgq.train.cdr_args,
+                      bsz=chgq.train.bsz,
+                      epochs=chgq.train.epochs,
+                      acc_thres=chgq.train.acc_thres
                       )
 
     bops_computed = False
-    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(cHGQ.save_path) / 'ckpts')
+    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(chgq.save_path) / 'ckpts')
     if 'all' in args.run or 'test' in args.run:
         print('Phase: test')
         print(f'Using checkpoint: {ckpt_hgq}')
-        test(model_hgq, ckpt_hgq, cHGQ.save_path, X_train, X_val, X_test, y_test)
+        test(model_hgq, ckpt_hgq, chgq.save_path, X_train, X_val, X_test, y_test)
         bops_computed = True
 
     if 'all' in args.run or 'syn' in args.run:
@@ -113,4 +113,4 @@ if __name__ == '__main__':
             _ = compute_bops(model_hgq, X_train, bsz=2048, verbose=False)
             bops = compute_bops(model_hgq, X_val, bsz=2048, rst=False)
             print(f'BOPS: {bops}')
-        syn_test(model_hgq, ckpt_hgq, cHGQ.save_path, X_test, y_test)
+        syn_test(model_hgq, ckpt_hgq, chgq.save_path, X_test, y_test)

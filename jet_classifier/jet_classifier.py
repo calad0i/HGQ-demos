@@ -12,8 +12,6 @@ hep.style.use(hep.style.CMS)
 
 from pathlib import Path
 
-from pathlib import Path
-
 from nn_utils import set_seed, get_best_ckpt
 from src.dataloader import get_data
 from src.model import get_model
@@ -93,10 +91,5 @@ if __name__ == '__main__':
                 model.add(softmax)
             print('Computing BOPS...')
             bops = compute_bops(model, X_train_val, bsz=664000)
-            print(softmax.pre_activation_quantizer._min)
-            print(softmax.pre_activation_quantizer._max)
-            if args.softmax:
-                softmax.pre_activation_quantizer._min.assign(tf.constant([[0, 0, 0, 0, 0]], dtype=tf.float32))
-                softmax.pre_activation_quantizer._max.assign(tf.constant([[1, 1, 1, 1, 1]], dtype=tf.float32))
             print(f'BOPS: {bops}')
         syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)

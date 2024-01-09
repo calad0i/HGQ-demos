@@ -21,7 +21,7 @@ from src.train import train_fp32, train_hgq
 from src.test import test
 from src.syn_test import syn_test
 
-from HGQ.bops import compute_bops
+from HGQ.bops import trace_minmax
 
 import omegaconf
 import argparse
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         if not bops_computed:
             print('Computing BOPS...')
             model_hgq.load_weights(ckpt_hgq)
-            _ = compute_bops(model_hgq, X_train, bsz=2048, verbose=False)
-            bops = compute_bops(model_hgq, X_val, bsz=2048, rst=False)
+            _ = trace_minmax(model_hgq, X_train, bsz=2048, verbose=False)
+            bops = trace_minmax(model_hgq, X_val, bsz=2048, rst=False)
             print(f'BOPS: {bops}')
         syn_test(model_hgq, ckpt_hgq, chgq.save_path, X_test, y_test)

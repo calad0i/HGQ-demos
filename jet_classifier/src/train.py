@@ -5,9 +5,6 @@ from HGQ.bops import FreeBOPs, ResetMinMax, CalibratedBOPs
 from nn_utils import PBarCallback, SaveTopN, save_history
 
 
-from HGQ import set_default_kernel_quantizer_config
-
-
 def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_split: float, acc_thres: float, calibrated_bops=None):
 
     print('Compiling model...')

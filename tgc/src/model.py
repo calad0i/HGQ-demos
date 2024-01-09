@@ -68,7 +68,7 @@ def get_model_fp32(mask12, mask13, mask23):
 from HGQ.layers import Signature, HAdd, HConv1D, HDense, HActivation
 from HGQ.layers import PReshape
 from HGQ.utils import L1
-from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
+from HGQ import set_default_kq_conf, set_default_paq_conf
 
 
 def get_model_hgq(mask12, mask13, mask23, conf):
@@ -136,7 +136,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         minmax_record=True
     )
 
-    set_default_pre_activation_quantizer_config(act_q_conf)
+    set_default_paq_conf(act_q_conf)
 
     aio_c = {
         'beta': beta,

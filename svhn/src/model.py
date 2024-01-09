@@ -4,8 +4,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from HGQ.utils import L1
-from HGQ import set_default_kernel_quantizer_config, set_default_pre_activation_quantizer_config
+from HGQ import set_default_paq_conf, set_default_kq_conf
 from HGQ import HConv2D, HDense, HQuantize, PMaxPool2D, PReshape, PFlatten
+from HGQ.layers.dense import HDenseBatchNorm
+from HGQ.layers.conv import HConv2DBatchNorm
 
 
 def get_model_fp32(renorm=False):
@@ -81,7 +83,7 @@ def get_model_hgq(
         init_bw=init_bw_k,
         skip_dims='all',
         rnd_strategy='auto',  # 'auto': 'floor' for layer without bias except HActivation layers, 'standard_round' otherwise
-        exact_q_value=False,
+        exact_q_value=True,
         dtype=None,
         bw_clip=(-23, 23),
         trainable=True,
@@ -89,7 +91,7 @@ def get_model_hgq(
         minmax_record=True
     )
 
-    set_default_pre_activation_quantizer_config(act_q_conf)
+    set_default_paq_conf(act_q_conf)
 
     def cfg(): return {
         'kernel_regularizer': keras.regularizers.l1(1e-4),
@@ -122,8 +124,8 @@ def get_model_hgq(
 
     for l in model.layers:
         if isinstance(l, PMaxPool2D):
-            l.last_layer.pre_activation_quantizer.degeneracy /= int(np.prod(l.pool_size))  # pooling layers modifies the exposure of the previous layer
+            l.last_layer.paq.degeneracy /= int(np.prod(l.pool_size))  # pooling layers modifies the exposure of the previous layer
         if isinstance(l, HConv2D):
-            l.last_layer.pre_activation_quantizer.degeneracy *= float(l.parallel_factor / l.total_channels)
+            l.paq.degeneracy *= float(l.parallel_factor / l.total_channels)
 
     return model

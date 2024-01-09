@@ -1,10 +1,9 @@
 from pathlib import Path
 import numpy as np
 
-from HGQ.hls4ml_hook import convert_from_hgq_model
 
 from matplotlib import pyplot as plt
-from nn_utils import plot_history, compute_bops, load_history
+from nn_utils import plot_history, trace_minmax, load_history
 
 
 def test(model, weight_path, save_path: Path, Xt, X, Y):
@@ -20,7 +19,7 @@ def test(model, weight_path, save_path: Path, Xt, X, Y):
     ax.set_ylim(np.min(history['multi'])*0.7, np.min(history['multi'])*2)
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
-    mul_bops = compute_bops(model, Xt, bsz=664000)
+    mul_bops = trace_minmax(model, Xt, bsz=664000)
 
     pred = model.predict(X, batch_size=16384, verbose=0)  # type: ignore
     acc = np.mean(np.argmax(pred, axis=1) == Y.ravel())

@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from nn_utils import plot_history, load_history
-from HGQ.bops import compute_bops
+from HGQ.bops import trace_minmax
 
 
 def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
@@ -26,8 +26,8 @@ def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
     ax.set_yscale('log')
     plt.savefig(save_path / 'bops.pdf', dpi=300, bbox_inches='tight')
 
-    _ = compute_bops(model, Xt, bsz=16384, verbose=False)
-    mul_bops = compute_bops(model, Xv, bsz=16384, rst=False)
+    _ = trace_minmax(model, Xt, bsz=16384, verbose=False)
+    mul_bops = trace_minmax(model, Xv, bsz=16384, rst=False)
 
     pred = model.predict(X, batch_size=16384, verbose=0)  # type: ignore
     diff = pred.ravel() - Y.numpy().ravel()

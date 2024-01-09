@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 
-from nn_utils import PBarCallback, SaveTopN, plot_history, compute_bops, save_history, load_history
+from nn_utils import PBarCallback, SaveTopN, plot_history, trace_minmax, save_history, load_history
 
 
 def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
@@ -22,8 +22,8 @@ def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
     fig, ax = plot_history(history, ('multi',), ylabel='BOPs')
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
-    _ = compute_bops(model, Xt, bsz=2048, verbose=False)
-    mul_bops = compute_bops(model, Xv, bsz=2048, rst=False)
+    _ = trace_minmax(model, Xt, bsz=2048, verbose=False)
+    mul_bops = trace_minmax(model, Xv, bsz=2048, rst=False)
 
     pred = model.predict(X, batch_size=2048, verbose=0)
     acc = np.mean(np.argmax(pred, axis=1) == Y.numpy().ravel())

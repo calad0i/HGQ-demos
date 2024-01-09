@@ -1,6 +1,8 @@
 from pathlib import Path
 import numpy as np
-from HGQ.hls4ml_hook import convert_from_hgq_model
+from HGQ.proxy import to_proxy_model
+
+from hls4ml.converters import convert_from_keras_model
 
 
 def syn_test(model, weight_path, save_path, X, Y, N=None):
@@ -9,18 +11,16 @@ def syn_test(model, weight_path, save_path, X, Y, N=None):
     model.load_weights(weight_path)
 
     hls_prj_path = save_path / 'hls4ml_prj'
-
+    proxy = to_proxy_model(model)
     print('Converting to hls4ml model...')
-    model_hls = convert_from_hgq_model(
-        model,
+    model_hls = convert_from_keras_model(
+        proxy,
         hls_config=None,
         output_dir=str(hls_prj_path),
         project_name='svhn',
         part='xcvu9p-flga2104-2L-e',
         clock_period=5,
         io_type='io_stream',
-        bias_accum=None,
-        inline_everything=False
     )
 
     print('Compiling hls4ml model...')

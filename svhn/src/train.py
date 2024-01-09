@@ -6,9 +6,9 @@ import tensorflow as tf
 
 from matplotlib import pyplot as plt
 
-from nn_utils import PBarCallback, SaveTopN, plot_history, compute_bops, save_history, load_history, absorb_batchNorm, get_best_ckpt
+from nn_utils import PBarCallback, SaveTopN, plot_history, trace_minmax, save_history, load_history, absorb_batchNorm, get_best_ckpt
 
-from HGQ.bops import compute_bops, FreeBOPs, ResetMinMax
+from HGQ.bops import trace_minmax, FreeBOPs, ResetMinMax
 
 
 

@@ -22,6 +22,7 @@ from src.syn_test import syn_test
 import omegaconf
 import argparse
 
+from HGQ.bops import trace_minmax
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -47,8 +48,7 @@ if __name__ == '__main__':
 
     model = get_model(conf.model.beta, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw, uniform=uniform)
 
-    from HGQ.bops import compute_bops
-    bops = compute_bops(model, X_train_val, bsz=664000)
+    bops = trace_minmax(model, X_train_val, bsz=664000)
     print(f'Init BOPS: {bops}')
 
     if 'train' in args.run or 'all' in args.run:
@@ -81,8 +81,8 @@ if __name__ == '__main__':
             model.load_weights(ckpt_path)
             if args.softmax:
                 from HGQ.layers import HActivation
-                from HGQ import get_default_pre_activation_quantizer_config
-                pa_conf = get_default_pre_activation_quantizer_config()
+                from HGQ import get_default_paq_conf
+                pa_conf = get_default_paq_conf()
                 pa_conf['init_bw'] = 10
                 pa_conf['skip_dims'] = (0,)
                 print(pa_conf)
@@ -90,6 +90,6 @@ if __name__ == '__main__':
                 softmax.build((None, 5))
                 model.add(softmax)
             print('Computing BOPS...')
-            bops = compute_bops(model, X_train_val, bsz=664000)
+            bops = trace_minmax(model, X_train_val, bsz=664000)
             print(f'BOPS: {bops}')
         syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)

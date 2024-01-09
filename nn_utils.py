@@ -21,11 +21,11 @@ from matplotlib import pyplot as plt
 import zstd
 import h5py as h5
 
-from keras.saving.legacy import hdf5_format
-from keras.layers.convolutional.base_conv import Conv
+from keras.src.saving.legacy import hdf5_format
+from keras.src.layers.convolutional.base_conv import Conv
 from keras.layers import Dense
 
-from HGQ.bops import compute_bops
+from HGQ.bops import trace_minmax
 
 
 class NumpyFloatValuesEncoder(json.JSONEncoder):
@@ -99,7 +99,7 @@ class SaveTopN(keras.callbacks.Callback):
             if path == '/dev/null':
                 continue
             self.model.load_weights(path)
-            bops = compute_bops(self.model, dataset, bsz=bsz, verbose=False)
+            bops = trace_minmax(self.model, dataset, bsz=bsz, verbose=False)
             with h5.File(path, 'r+') as f:
                 logs = json.loads(f.attrs['train_log'])  # type: ignore
                 logs['multi'] = bops
@@ -132,8 +132,8 @@ class PBarCallback(tf.keras.callbacks.Callback):
         assert isinstance(logs, dict)
         self.pbar.update(1)
         string = self.template.format(**logs)
-        if 'multi' in logs:
-            string += f' - BOPs: {logs["multi"]:,.0f}'
+        if 'bops' in logs:
+            string += f' - BOPs: {logs["bops"]:,.0f}'
         self.pbar.set_description(string)
 
     def on_train_end(self, logs=None):

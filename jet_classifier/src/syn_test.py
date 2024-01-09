@@ -1,24 +1,25 @@
 from pathlib import Path
 import numpy as np
 
-from HGQ.hls4ml_hook import convert_from_hgq_model
-
+# from HGQ.hls4ml_hook import convert_from_hgq_model
+from HGQ.proxy import to_proxy_model
+from hls4ml.converters import convert_from_keras_model
 
 def syn_test(model, save_path: Path, X, Y, N=None, softmax=False):
 
     hls_prj_path = save_path / ('hls4ml_prj' if not softmax else 'hls4ml_prj_softmax')
 
     print('Converting to hls4ml model...')
-    model_hls = convert_from_hgq_model(
-        model,
-        hls_config=None,
+    proxy = to_proxy_model(model)
+    proxy.save('/tmp/fuck.h5')
+    model_hls = convert_from_keras_model(
+        proxy,
+        hls_config={},
         output_dir=str(hls_prj_path),
         project_name='jet_classifier',
         part='xcvu9p-flga2104-2L-e',
         clock_period=5,
         io_type='io_parallel',
-        bias_accum=None,
-        inline_everything=True
     )
 
     print('Compiling hls4ml model...')

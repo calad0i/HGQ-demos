@@ -11,7 +11,7 @@ def syn_test(model, weight_path, save_path, X, Y, N=None):
     model.load_weights(weight_path)
 
     hls_prj_path = save_path / 'hls4ml_prj'
-    proxy = to_proxy_model(model)
+    proxy = to_proxy_model(model, unary_lut_max_table_size=1024)
     print('Converting to hls4ml model...')
     model_hls = convert_from_keras_model(
         proxy,

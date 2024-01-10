@@ -15,8 +15,8 @@ def test(model, weight_path, save_path: Path, Xt, X, Y):
     ax.set_ylim(0.7, 0.77)
     plt.savefig(save_path / 'accuracy.pdf', dpi=300)
 
-    fig, ax = plot_history(history, ('multi',), ylabel='BOPs')
-    ax.set_ylim(np.min(history['multi'])*0.7, np.min(history['multi'])*2)
+    fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
+    ax.set_ylim(np.min(history['bops']) * 0.7, np.min(history['bops']) * 2)
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
     mul_bops = trace_minmax(model, Xt, bsz=664000)

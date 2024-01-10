@@ -7,7 +7,7 @@ from nn_utils import PBarCallback, SaveTopN, plot_history, trace_minmax, save_hi
 
 
 def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
-    
+
     save_path = Path(save_path)
     weight_path = weight_path or save_path / 'last.h5'
     model.load_weights(weight_path)
@@ -15,11 +15,11 @@ def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
 
     fig, ax = plot_history(history, metrics=('loss', 'val_loss'), ylabel='Loss')
     plt.savefig(save_path / 'loss.pdf')
-    
+
     fig, ax = plot_history(history, ('accuracy', 'val_accuracy'), ylabel='Accuracy')
     plt.savefig(save_path / 'accuracy.pdf', dpi=300)
 
-    fig, ax = plot_history(history, ('multi',), ylabel='BOPs')
+    fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
     _ = trace_minmax(model, Xt, bsz=2048, verbose=False)

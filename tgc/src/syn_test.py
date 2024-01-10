@@ -3,7 +3,8 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 
-from HGQ.hls4ml_hook import convert_from_hgq_model
+from HGQ import to_proxy_model
+from hls4ml.converters import convert_from_keras_model
 
 
 def syn_test(model, weight_path, conf, X, Y, N=None):
@@ -12,18 +13,16 @@ def syn_test(model, weight_path, conf, X, Y, N=None):
     model.load_weights(weight_path)
 
     hls_prj_path = save_path / 'hls4ml_prj'
-
+    proxy = to_proxy_model(model, unary_lut_max_table_size=1024)
     print('Converting to hls4ml model...')
-    model_hls = convert_from_hgq_model(
-        model,
+    model_hls = convert_from_keras_model(
+        proxy,
         hls_config=None,
         output_dir=str(hls_prj_path),
         project_name='TGCNN',
         part='xcvu13p-fhga2104-2l-e',
         clock_period=6.25,
         io_type='io_parallel',
-        bias_accum=conf.syn.bias_accum,
-        inline_everything=False,
     )
 
     print('Compiling hls4ml model...')

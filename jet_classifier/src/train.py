@@ -1,36 +1,44 @@
 import tensorflow as tf
 from pathlib import Path
+import keras
 
 from HGQ.bops import FreeBOPs, ResetMinMax, CalibratedBOPs
-from nn_utils import PBarCallback, SaveTopN, save_history
+from nn_utils import PBarCallback, save_history, PeratoFront, BetaScheduler
 
 
-def train(model, X, Y, save_path: Path, lr: float, epochs: int, bsz: int, val_split: float, acc_thres: float, calibrated_bops=None):
+def train(model:keras.Model, X, Y, save_path: Path, conf):
 
     print('Compiling model...')
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics = ['accuracy']
-    opt = tf.keras.optimizers.Adam(learning_rate=lr)
+    opt = tf.keras.optimizers.Adam(learning_rate=conf.train.lr)
     model.compile(optimizer=opt, loss=loss, metrics=metrics)
 
     print('Registering callbacks...')
-    bops = FreeBOPs() if not calibrated_bops else CalibratedBOPs(X[:calibrated_bops])
-    cos = tf.keras.experimental.CosineDecay(lr, epochs)
+    bops = FreeBOPs() if not conf.train.calibrated_bops else CalibratedBOPs(X[:conf.train.calibrated_bops])
+    cos = tf.keras.experimental.CosineDecay(conf.train.lr, conf.train.epochs)
     sched = tf.keras.callbacks.LearningRateScheduler(cos)
-    pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%} - lr: {lr:.2e}')
+    pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%} - lr: {lr:.2e} - beta: {beta:.2e}')
     rst = ResetMinMax()
-    save = SaveTopN(
-        metric_fn=lambda x: (min(x['val_accuracy'], x['accuracy']) - 0.71) / x['multi'],
-        n=20,
-        path=save_path / 'ckpts',
-        cond_fn=lambda x: min(x['val_accuracy'], x['accuracy']) > acc_thres and x['multi'] < 10000,
-        fname_format='epoch={epoch}-acc={accuracy:.2%}-val_acc={val_accuracy:.2%}-BOPs={multi}-metric={metric:.4e}.h5'
-    )
 
-    callbacks = [sched, bops, pbar, save, rst]
+    save = PeratoFront(
+        path=save_path / 'ckpts',
+        cond_fn=lambda x: True,
+        fname_format='epoch={epoch}-acc={accuracy:.2%}-val_acc={val_accuracy:.2%}-BOPs={bops}.h5',
+        metrics_names=['val_accuracy', 'bops'],
+        sides=[1, -1],
+    )
+    beta_sched = BetaScheduler.from_config(conf)
+    callbacks = [sched, beta_sched, bops, pbar, save, rst]
 
     print('Start training...')
-    model.fit(X, Y, epochs=epochs, batch_size=bsz, validation_split=val_split, verbose=0, callbacks=callbacks)  # type: ignore
+    model.fit(X, Y,
+              epochs=conf.train.epochs,
+              batch_size=conf.train.bsz,
+              validation_split=conf.train.val_split,
+              verbose=0, # type: ignore
+              callbacks=callbacks
+              )
     history: dict[str, list] = model.history.history  # type: ignore
     save_history(history, save_path / 'history.pkl.zst')
     model.save_weights(save_path / 'last.h5')

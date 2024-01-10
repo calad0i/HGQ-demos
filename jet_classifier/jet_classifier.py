@@ -46,50 +46,40 @@ if __name__ == '__main__':
 
     X_train_val, X_test, y_train_val, y_test = get_data(data_path, mmap_location='/gpu:0', seed=seed)
 
-    model = get_model(conf.model.beta, conf.model.a_bw_l1_reg, conf.model.w_bw_l1_reg, conf.model.a_init_bw, conf.model.w_init_bw, uniform=uniform)
+    model = get_model(conf)
 
     bops = trace_minmax(model, X_train_val, bsz=664000)
     print(f'Init BOPS: {bops}')
 
     if 'train' in args.run or 'all' in args.run:
         print('Phase: train')
-        train(model,
-              X_train_val,
-              y_train_val,
-              save_path,
-              lr=conf.train.lr,
-              epochs=conf.train.epochs,
-              bsz=conf.train.bsz,
-              val_split=conf.train.val_split,
-              acc_thres=conf.train.acc_thres,
-              calibrated_bops=False if not uniform else 10000,
-              )
+        train(model, X_train_val, y_train_val, save_path, conf)
 
-    bops_computed = False
-    if 'test' in args.run or 'all' in args.run:
-        print('Phase: test')
-        ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
-        print(f'Using checkpoint: {ckpt_path}')
-        test(model, Path(ckpt_path), save_path, X_train_val, X_test, y_test)
-        bops_computed = True
+    # bops_computed = False
+    # if 'test' in args.run or 'all' in args.run:
+    #     print('Phase: test')
+    #     ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
+    #     print(f'Using checkpoint: {ckpt_path}')
+    #     test(model, Path(ckpt_path), save_path, X_train_val, X_test, y_test)
+    #     bops_computed = True
 
-    if 'syn' in args.run or 'all' in args.run:
-        print('Phase: syn')
-        ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
-        if not bops_computed:
-            print(f'Using checkpoint: {ckpt_path}')
-            model.load_weights(ckpt_path)
-            if args.softmax:
-                from HGQ.layers import HActivation
-                from HGQ import get_default_paq_conf
-                pa_conf = get_default_paq_conf()
-                pa_conf['init_bw'] = 10
-                pa_conf['skip_dims'] = (0,)
-                print(pa_conf)
-                softmax = HActivation('softmax', 0, pa_conf)
-                softmax.build((None, 5))
-                model.add(softmax)
-            print('Computing BOPS...')
-            bops = trace_minmax(model, X_train_val, bsz=664000)
-            print(f'BOPS: {bops}')
-        syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)
+    # if 'syn' in args.run or 'all' in args.run:
+    #     print('Phase: syn')
+    #     ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
+    #     if not bops_computed:
+    #         print(f'Using checkpoint: {ckpt_path}')
+    #         model.load_weights(ckpt_path)
+    #         if args.softmax:
+    #             from HGQ.layers import HActivation
+    #             from HGQ import get_default_paq_conf
+    #             pa_conf = get_default_paq_conf()
+    #             pa_conf['init_bw'] = 10
+    #             pa_conf['skip_dims'] = (0,)
+    #             print(pa_conf)
+    #             softmax = HActivation('softmax', 0, pa_conf)
+    #             softmax.build((None, 5))
+    #             model.add(softmax)
+    #         print('Computing BOPS...')
+    #         bops = trace_minmax(model, X_train_val, bsz=664000)
+    #         print(f'BOPS: {bops}')
+    #     syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)

@@ -1,0 +1,32 @@
+seed: 42
+datapath: ./data
+val_split: 0.1
+
+
+save_path: /tmp/svhn_sweep
+model:
+  init_bw_a: 4
+  init_bw_k: 4
+  parallel_factors: [1,1,1]
+  k_bw_l1_reg_conv: 2.e-6
+  k_bw_l1_reg_dense: 2.e-6
+  a_bw_l1_reg: 2.e-6
+train:
+  lr: 0
+  bsz: 1024
+  epochs: 10000
+  acc_thres: 0.875
+  cdr_args:
+    initial_learning_rate: 1.e-3
+    first_decay_steps: 50
+    t_mul: 1.0
+    m_mul: 0.99
+    alpha: 1.e-6
+beta:
+  intervals:
+    - epochs: 0
+      betas: [0,0]
+      interpolation: linear
+    - epochs: 400
+      betas: [1.e-7, 1.e-4]
+      interpolation: log

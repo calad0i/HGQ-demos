@@ -22,7 +22,7 @@ def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
     ax.set_ylim(2.5, 6)
     plt.savefig(save_path / 'mse.pdf', dpi=300, bbox_inches='tight')
 
-    fig, ax = plot_history(history, ('multi',), ylabel='BOPs')
+    fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
     ax.set_yscale('log')
     plt.savefig(save_path / 'bops.pdf', dpi=300, bbox_inches='tight')
 

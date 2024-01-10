@@ -102,7 +102,7 @@ class SaveTopN(keras.callbacks.Callback):
             bops = trace_minmax(self.model, dataset, bsz=bsz, verbose=False)
             with h5.File(path, 'r+') as f:
                 logs = json.loads(f.attrs['train_log'])  # type: ignore
-                logs['multi'] = bops
+                logs['bops'] = bops
                 metric = self.metric_fn(logs)
                 logs['metric'] = metric
                 f.attrs['train_log'] = json.dumps(logs, cls=NumpyFloatValuesEncoder)
@@ -242,3 +242,128 @@ def get_best_ckpt(save_path: Path, take_min=False):
     ckpts = sorted(ckpts, key=rank, reverse=not take_min)
     ckpt = ckpts[0]
     return ckpt
+
+
+class PeratoFront(keras.callbacks.Callback):
+    def __init__(self,
+                 path: str | Path,
+                 fname_format: str,
+                 metrics_names: list[str],
+                 sides: list[int],
+                 cond_fn: Callable[[dict], bool] = lambda x: True,
+                 ):
+        self.path = Path(path)
+        self.fname_format = fname_format
+        os.makedirs(path, exist_ok=True)
+        self.paths = []
+        self.metrics = []
+        self.metric_names = metrics_names
+        self.sides = np.array(sides)
+        self.cond_fn = cond_fn
+
+    def on_epoch_end(self, epoch, logs=None):
+        assert isinstance(self.model, keras.models.Model)
+        assert isinstance(logs, dict)
+
+        logs = logs.copy()
+        logs['epoch'] = epoch
+
+        if not self.cond_fn(logs):
+            return
+        new_metrics = np.array([logs[metric_name] for metric_name in self.metric_names])
+        _rm_idx = []
+        for i, old_metrics in enumerate(self.metrics):
+            _old_metrics = self.sides * old_metrics
+            _new_metrics = self.sides * new_metrics
+            if np.all(_new_metrics <= _old_metrics):
+                return
+            if np.all(_new_metrics >= _old_metrics):
+                _rm_idx.append(i)
+        for i in _rm_idx[::-1]:
+            self.metrics.pop(i)
+            p = self.paths.pop(i)
+            os.remove(p)
+
+        path = self.path / self.fname_format.format(**logs)
+        self.metrics.append(new_metrics)
+        self.paths.append(path)
+        self.model.save_weights(self.paths[-1])
+
+        with h5.File(path, 'r+') as f:
+            log_str = json.dumps(logs, cls=NumpyFloatValuesEncoder)
+            f.attrs['train_log'] = log_str
+
+    def rename_ckpts(self, dataset, bsz=65536):
+        assert isinstance(self.model, keras.models.Model)
+
+        weight_buf = BytesIO()
+        with h5.File(weight_buf, 'w') as f:
+            hdf5_format.save_weights_to_hdf5_group(f, self.model)
+        weight_buf.seek(0)
+
+        for i, path in enumerate(tqdm(self.paths, desc='Renaming checkpoints')):
+            self.model.load_weights(path)
+            bops = trace_minmax(self.model, dataset, bsz=bsz, verbose=False)
+            with h5.File(path, 'r+') as f:
+                logs = json.loads(f.attrs['train_log'])  # type: ignore
+                logs['bops'] = bops
+                f.attrs['train_log'] = json.dumps(logs, cls=NumpyFloatValuesEncoder)
+                metrics = np.array([logs[metric_name] for metric_name in self.metric_names])
+            self.metrics[i] = metrics
+            new_fname = self.path / self.fname_format.format(**logs)
+            os.rename(path, new_fname)
+            self.paths[i] = new_fname
+
+        with h5.File(weight_buf, 'r') as f:
+            hdf5_format.load_weights_from_hdf5_group_by_name(f, self.model)
+
+
+class BetaScheduler(keras.callbacks.Callback):
+    def __init__(self, beta_fn: Callable[[int], float]):
+        self.beta_fn = beta_fn
+
+    def on_epoch_begin(self, epoch, logs=None):
+        assert isinstance(self.model, keras.models.Model)
+
+        beta = self.beta_fn(epoch)
+        for layer in self.model.layers:
+            if hasattr(layer, 'beta'):
+                layer.beta.assign(keras.backend.constant(beta, dtype=keras.backend.floatx()))
+
+    def on_epoch_end(self, epoch, logs=None):
+        assert isinstance(logs, dict)
+        logs['beta'] = self.beta_fn(epoch)
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(get_schedule(config.beta, config.train.epochs))
+
+
+def get_schedule(beta_conf, total_epochs):
+    epochs = []
+    betas = []
+    interpolations = []
+    for block in beta_conf.intervals:
+        epochs.append(block.epochs)
+        betas.append(block.betas)
+        interpolation = block.interpolation
+        assert interpolation in ['linear', 'log']
+        interpolations.append(interpolation == 'log')
+    epochs = np.array(epochs + [total_epochs])
+    assert np.all(np.diff(epochs) >= 0)
+    betas = np.array(betas)
+    interpolations = np.array(interpolations)
+
+    def schedule(epoch):
+        if epoch >= total_epochs:
+            return betas[-1, -1]
+        idx = np.searchsorted(epochs, epoch, side='right') - 1
+        beta0, beta1 = betas[idx]
+        epoch0, epoch1 = epochs[idx], epochs[idx + 1]
+        if interpolations[idx]:
+            beta = beta0 * (beta1 / beta0) ** ((epoch - epoch0) / (epoch1 - epoch0))
+        else:
+            beta = beta0 + (beta1 - beta0) * (epoch - epoch0) / (epoch1 - epoch0)
+        return float(beta)
+
+    return schedule

@@ -23,57 +23,15 @@ class Diag(tf.keras.constraints.Constraint):
         return {'mask': self.mask}
 
 
-def get_model_fp32(mask12, mask13, mask23):
-
-    relu = keras.layers.ReLU
-    act = keras.layers.Activation
-
-    input_m1 = Input(shape=(50, 3), name='M1')
-    input_m2 = Input(shape=(50, 2), name='M2')
-    input_m3 = Input(shape=(50, 2), name='M3')
-
-    m1_c = act('tanh', name='act1')(Reshape((50,))(Conv1D(1, 3, strides=1, padding='same', activation=None, name='m1_conv', use_bias=False)(input_m1)))
-    m2_c = Reshape((50,))(Conv1D(1, 3, strides=1, padding='same', activation=None, name='m2_conv', use_bias=False)(input_m2))
-    m3_c = Reshape((50,))(Conv1D(1, 3, strides=1, padding='same', activation=None, name='m3_conv', use_bias=False)(input_m3))
-
-    m1_o = (Dense(50, name='map12', kernel_constraint=Diag(mask12) if mask12 is not None else None, activation=None, use_bias=False)(m1_c))
-    m2_i = act('tanh', name='act12')(Add(name='add12')([m1_o, m2_c]))
-
-    m2_o = (Dense(50, name='map23', kernel_constraint=Diag(mask23) if mask23 is not None else None, activation=None, use_bias=False)(m2_i))
-    m3_i = (Add(name='add23')([m2_o, m3_c]))
-
-    m1_oo = (Dense(50, name='map13', kernel_constraint=Diag(mask13) if mask13 is not None else None, activation=None, use_bias=False)(m1_c))
-    m3_o = (Add(name='add13')([m1_oo, m3_c]))
-    m3_o = (Add(name='add23')([m2_o, m3_o]))
-
-    feature_out = act('tanh', name='actf')(m3_o)
-
-    dd1 = Dense(28, activation=None, name='t1')(feature_out)
-    dd1 = relu()(BatchNormalization()(dd1))
-
-    dd1 = (Dense(14, activation=None, name='t2')(dd1))
-    dd1 = relu()(BatchNormalization()(dd1))
-
-    dd1 = (Dense(8, activation=None, name='t3')(dd1))
-    dd1 = relu()(BatchNormalization()(dd1))
-
-    dd1 = Dense(1, bias_initializer=keras.initializers.Constant(229), name='theta_out')(dd1)  # type: ignore
-
-    output = dd1
-
-    model = keras.Model([input_m1, input_m2, input_m3], output, name='TGCNN')
-    return model
-
-
-from HGQ.layers import Signature, HAdd, HConv1D, HDense, HActivation
+from HGQ.layers import Signature, HAdd, HConv1D, HConv1DBatchNorm, HDense, HDenseBatchNorm, HActivation
 from HGQ.layers import PReshape
-from HGQ.utils import L1
+from HGQ.utils import MonoL1
 from HGQ import set_default_kq_conf, set_default_paq_conf
 
 
 def get_model_hgq(mask12, mask13, mask23, conf):
 
-    beta = conf.beta
+    beta = 0.
     l1_cc = conf.l1_cc
     l1_dc = conf.l1_dc
     l1_act = conf.l1_act
@@ -98,7 +56,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         dtype=None,
         bw_clip=(-23, 23),
         trainable=True,
-        regularizer=L1(l1_cc),
+        regularizer=MonoL1(l1_cc),
     )
 
     ker_q_conf_d = dict(
@@ -109,7 +67,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         dtype=None,
         bw_clip=(-23, 23),
         trainable=True,
-        regularizer=L1(l1_dc),
+        regularizer=MonoL1(l1_dc),
     )
 
     act_q_conf = dict(
@@ -120,7 +78,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         dtype=None,
         bw_clip=(-23, 23),
         trainable=True,
-        regularizer=L1(l1_act),
+        regularizer=MonoL1(l1_act),
         minmax_record=True
     )
 
@@ -132,7 +90,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         dtype=None,
         bw_clip=(-23, 23),
         trainable=True,
-        regularizer=L1(l1_act),
+        regularizer=MonoL1(l1_act),
         minmax_record=True
     )
 
@@ -140,7 +98,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
 
     aio_c = {
         'beta': beta,
-        'kernel_quantizer_config': ker_q_conf_c,
+        'kq_conf': ker_q_conf_c,
         'activation': None,
         'use_bias': False,
         'padding': 'same',
@@ -149,16 +107,16 @@ def get_model_hgq(mask12, mask13, mask23, conf):
 
     aio_d = {
         'beta': beta,
-        'kernel_quantizer_config': ker_q_conf_d
+        'kq_conf': ker_q_conf_d
     }
 
     _input_m1 = signature('M1')(input_m1)
     _input_m2 = signature('M2')(input_m2)
     _input_m3 = signature('M3')(input_m3)
 
-    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m1)
-    m2_c = HConv1D(1, 3, strides=1, name='m2_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m2)
-    m3_c = HConv1D(1, 3, strides=1, name='m3_conv', **aio_c, pre_activation_quantizer_config=act_q_conf_hg)(_input_m3)
+    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m1)
+    m2_c = HConv1D(1, 3, strides=1, name='m2_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m2)
+    m3_c = HConv1D(1, 3, strides=1, name='m3_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m3)
 
     m1_c = PReshape((50,))(m1_c)
     m2_c = PReshape((50,))(m2_c)
@@ -176,13 +134,19 @@ def get_model_hgq(mask12, mask13, mask23, conf):
 
     feature_out = HActivation('tanh', beta=beta, name='feature_out')(m3_o)
 
-    dd1 = HDense(28, name='t1', **aio_d, activation='relu', pre_activation_quantizer_config=act_q_conf_hg)(feature_out)
-    dd1 = HDense(14, name='t2', **aio_d, activation='relu', pre_activation_quantizer_config=act_q_conf_hg)(dd1)
-    dd1 = HDense(8, name='t3', **aio_d, activation='relu', pre_activation_quantizer_config=act_q_conf_hg)(dd1)
+    dd1 = HDenseBatchNorm(28, name='t1', **aio_d, activation='relu', paq_conf=act_q_conf_hg)(feature_out)
+    dd1 = HDenseBatchNorm(14, name='t2', **aio_d, activation='relu', paq_conf=act_q_conf_hg)(dd1)
+    dd1 = HDenseBatchNorm(8, name='t3', **aio_d, activation='relu', paq_conf=act_q_conf_hg)(dd1)
 
     dd1 = HDense(1, name='theta_out')(dd1)
 
     output = dd1
 
     model = keras.Model([input_m1, input_m2, input_m3], output, name='TGCNN')
+
+    l = model.layers[-1]
+    # if getattr(l, 'bn_beta', None) is None:
+    l.bias.assign([229.])
+    # else:
+    # l.bn_beta.assign([229.])
     return model

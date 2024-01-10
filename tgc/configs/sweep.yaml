@@ -1,0 +1,33 @@
+seed: 42
+splits: [0.7,0.1,0.2] # train, val, test
+mask_thres: 0.01
+data_path: ./data/fake_TGC_0.041_pruned.h5
+
+save_path: /tmp/tgc_sweep
+train:
+  epochs: 40000
+  mse_thres: 5
+  cdr_args:
+    initial_learning_rate: 1.e-3
+    first_decay_steps: 100
+    t_mul: 1
+    m_mul: 1
+    alpha: 1.e-6
+  bsz: 16384
+model:
+  l1_cc: 2.e-6
+  l1_dc: 2.e-6
+  l1_act: 2.e-6
+  init_bw_a: 8
+  init_bw_k: 8
+  masking: true
+syn:
+  bias_accum: 2
+beta:
+  intervals:
+    - epochs: 0
+      betas: [0,0]
+      interpolation: linear
+    - epochs: 8000
+      betas: [5.e-7, 1.e-4]
+      interpolation: log

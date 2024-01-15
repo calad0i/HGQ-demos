@@ -28,7 +28,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', '-c', type=str)
     parser.add_argument('--run', '-r', nargs='*', type=str, default=['all'])
-    parser.add_argument('--ckpt', '-k', type=str, default=None)
     parser.add_argument('--softmax', '-s', action='store_true', help='Add final softmax layer to the model. For comparasion only.')
     args = parser.parse_args()
 
@@ -55,31 +54,10 @@ if __name__ == '__main__':
         print('Phase: train')
         train(model, X_train_val, y_train_val, save_path, conf)
 
-    # bops_computed = False
-    # if 'test' in args.run or 'all' in args.run:
-    #     print('Phase: test')
-    #     ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
-    #     print(f'Using checkpoint: {ckpt_path}')
-    #     test(model, Path(ckpt_path), save_path, X_train_val, X_test, y_test)
-    #     bops_computed = True
+    if 'test' in args.run or 'all' in args.run:
+        print('Phase: test')
+        test(model, save_path, X_train_val, X_test, y_test)
 
-    # if 'syn' in args.run or 'all' in args.run:
-    #     print('Phase: syn')
-    #     ckpt_path = args.ckpt or get_best_ckpt(save_path / 'ckpts')
-    #     if not bops_computed:
-    #         print(f'Using checkpoint: {ckpt_path}')
-    #         model.load_weights(ckpt_path)
-    #         if args.softmax:
-    #             from HGQ.layers import HActivation
-    #             from HGQ import get_default_paq_conf
-    #             pa_conf = get_default_paq_conf()
-    #             pa_conf['init_bw'] = 10
-    #             pa_conf['skip_dims'] = (0,)
-    #             print(pa_conf)
-    #             softmax = HActivation('softmax', 0, pa_conf)
-    #             softmax.build((None, 5))
-    #             model.add(softmax)
-    #         print('Computing BOPS...')
-    #         bops = trace_minmax(model, X_train_val, bsz=664000)
-    #         print(f'BOPS: {bops}')
-    #     syn_test(model, save_path, X_test, y_test, N=None, softmax=args.softmax)
+    if 'syn' in args.run or 'all' in args.run:
+        print('Phase: syn')
+        syn_test(save_path, X_test, y_test, N=None, softmax=args.softmax)

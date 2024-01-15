@@ -35,15 +35,12 @@ def get_model(conf):
     set_default_kq_conf(ker_q_conf)
     set_default_paq_conf(act_q_conf)
 
-    paq_conf_last = act_q_conf.copy()
-    paq_conf_last['bw_clip'] = (-23, 2)
-
     model = keras.Sequential([
         HQuantize(input_shape=(16,), name='inp_q', beta=0),
         HDense(int(64), activation='relu', name='dense_1', beta=0),
         HDense(int(32), activation='relu', name='dense_2', beta=0),
         HDense(int(32), activation='relu', name='dense_3', beta=0),
-        HDense(5, name='dense_4', beta=0, paq_conf=paq_conf_last),
+        HDense(5, name='dense_4', beta=0),
     ])
 
     return model

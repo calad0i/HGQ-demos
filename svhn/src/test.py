@@ -1,16 +1,16 @@
 from pathlib import Path
+import json
 
 import numpy as np
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from nn_utils import PBarCallback, SaveTopN, plot_history, trace_minmax, save_history, load_history
 
 
-def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
+def test(model, save_path: Path, Xt, Xv, X, Y):
 
     save_path = Path(save_path)
-    weight_path = weight_path or save_path / 'last.h5'
-    model.load_weights(weight_path)
     history = load_history(save_path / 'history.pkl.zst')
 
     fig, ax = plot_history(history, metrics=('loss', 'val_loss'), ylabel='Loss')
@@ -22,13 +22,21 @@ def test(model, weight_path, save_path: Path, Xt, Xv, X, Y):
     fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
     plt.savefig(save_path / 'bops.pdf', dpi=300)
 
-    _ = trace_minmax(model, Xt, bsz=2048, verbose=False)
-    mul_bops = trace_minmax(model, Xv, bsz=2048, rst=False)
+    ckpts = save_path.glob('ckpts/*.h5')
 
-    pred = model.predict(X, batch_size=2048, verbose=0)
-    acc = np.mean(np.argmax(pred, axis=1) == Y.numpy().ravel())
+    results = {}
+    pbar = tqdm(list(save_path.glob('ckpts/*.h5')))
+    for ckpt in pbar:
+        model.load_weights(ckpt)
+        _ = trace_minmax(model, Xt, bsz=2048, verbose=False)
+        bops = trace_minmax(model, Xv, bsz=2048, rst=False, verbose=False)
 
-    print(f'Test accuracy: {acc} @ {mul_bops:.0f} BOPs')
-    with open(save_path / 'test_acc.txt', 'w') as f:
-        f.write(f'test_accuracy: {acc}\n')
-        f.write(f'mul_bops: {mul_bops}')
+        pred = model.predict(X, batch_size=2048, verbose=0)
+        acc = np.mean(np.argmax(pred, axis=1) == Y.numpy().ravel())
+
+        print(f'Test accuracy: {acc} @ {bops:.0f} BOPs')
+        results[ckpt.name] = {'acc': acc, 'bops': bops}
+        pbar.set_description(f'Test accuracy: {acc:.5%} @ {bops:.0f} BOPs')
+
+    with open(save_path / 'test_acc.json', 'w') as f:
+        json.dump(results, f)

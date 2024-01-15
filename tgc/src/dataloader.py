@@ -24,7 +24,7 @@ def get_data_and_mask(fname, seed=42, split=(0.7, 0.1, 0.2), mask_thres=0.01, mm
     y_train, y_val, y_test = Y[:split[0]], Y[split[0]:split[1]], Y[split[1]:]
 
     try:
-        mask12, mask13, mask23 = get_mask(fname, thres=0.01)
+        mask12, mask13, mask23 = get_mask(fname, thres=mask_thres)
         print("Loaded masks from cache")
     except:
         print("Failed to load masks, generating and caching...")

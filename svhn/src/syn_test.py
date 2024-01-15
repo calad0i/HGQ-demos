@@ -5,10 +5,9 @@ from HGQ.proxy import to_proxy_model
 from hls4ml.converters import convert_from_keras_model
 
 
-def syn_test(model, weight_path, save_path, X, Y, N=None):
+def syn_test(model, save_path, X, Y, N=None):
 
     save_path = Path(save_path)
-    model.load_weights(weight_path)
 
     hls_prj_path = save_path / 'hls4ml_prj'
     proxy = to_proxy_model(model, unary_lut_max_table_size=1024)

@@ -55,6 +55,5 @@ def train_hgq(model: keras.Model, X, Y, Xv, Yv, Xs, Ys, conf):
 
     print('Recomputing BOPs...')
     save.rename_ckpts(X, bsz=16384)
-    plot_history(history, save_path / 'history.pdf')
 
     return model, history

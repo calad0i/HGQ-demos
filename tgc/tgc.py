@@ -53,14 +53,10 @@ if __name__ == '__main__':
         print('Phase: train_hgq')
         _ = train_hgq(model_hgq, X_train, y_train, X_val, y_val, X_test, y_test, conf)
 
-    ckpt_hgq = args.ckpt_hgq or get_best_ckpt(Path(conf.save_path) / 'ckpts', take_min=True)
-    bops_computed = False
-
-    # if 'all' in args.run or 'test' in args.run:
-    #     print('Phase: test')
-    #     print(f'Using checkpoint: {ckpt_hgq}')
-    #     test(model_hgq, ckpt_hgq, conf.save_path, X_train, X_val, X_test, y_test)
-    #     bops_computed = True
+    if 'all' in args.run or 'test' in args.run:
+        print('Phase: test')
+        test(model_hgq, conf.save_path, X_train, X_val, X_test, y_test)
+        bops_computed = True
 
     # if 'all' in args.run or 'syn' in args.run:
     #     print('Phase: syn_test')

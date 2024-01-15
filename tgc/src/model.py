@@ -12,15 +12,16 @@ Add = layers.Add
 BatchNormalization = layers.BatchNormalization
 
 
+@keras.utils.register_keras_serializable()
 class Diag(tf.keras.constraints.Constraint):
     def __init__(self, mask):
-        self.mask = tf.constant(mask)
+        self.mask = tf.constant(np.array(mask, dtype=np.float32))
 
     def __call__(self, W):
         return W * self.mask
 
     def get_config(self):
-        return {'mask': self.mask}
+        return {'mask': self.mask.numpy().tolist()}
 
 
 from HGQ.layers import Signature, HAdd, HConv1D, HConv1DBatchNorm, HDense, HDenseBatchNorm, HActivation

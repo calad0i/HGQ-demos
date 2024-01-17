@@ -37,10 +37,10 @@ def get_model(conf):
 
     model = keras.Sequential([
         HQuantize(input_shape=(16,), name='inp_q', beta=0),
-        HDense(int(64), activation='relu', name='dense_1', beta=0),
-        HDense(int(32), activation='relu', name='dense_2', beta=0),
-        HDense(int(32), activation='relu', name='dense_3', beta=0),
-        HDense(5, name='dense_4', beta=0),
+        HDenseBatchNorm(int(64), activation='relu', name='dense_1', beta=0),
+        HDenseBatchNorm(int(32), activation='relu', name='dense_2', beta=0),
+        HDenseBatchNorm(int(32), activation='relu', name='dense_3', beta=0),
+        HDenseBatchNorm(5, name='dense_4', beta=0),
     ])
 
     return model

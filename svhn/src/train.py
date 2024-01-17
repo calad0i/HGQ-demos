@@ -30,13 +30,19 @@ def train_hgq(model, X, Y, Xv, Yv, Xs, Ys, conf):
     metrics = ['accuracy']
     model.compile(optimizer=opt, loss=loss, metrics=metrics)
 
+    assert conf.train.cdr_args['t_mul'] == 1
+    alpha_len = conf.train.cdr_args.pop('alpha_steps')
     _cdr = tf.keras.experimental.CosineDecayRestarts(**conf.train.cdr_args)
+    cycle_len = conf.train.cdr_args['first_decay_steps']
+    cos_len = cycle_len - alpha_len
 
     def cdr(epoch):
-        thres = conf.train.epochs - 10
-        if epoch <= thres:
-            return _cdr(epoch)
-        return cdr(thres) * (0.9 ** (epoch - thres))
+        n_cycle = epoch // cycle_len
+        cur_cycle = epoch % cycle_len
+        if cur_cycle < cos_len:
+            return _cdr(cur_cycle * cycle_len / cos_len + n_cycle * cycle_len)
+        return _cdr.alpha
+
     scheduler = tf.keras.callbacks.LearningRateScheduler(cdr)
 
     pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%} - lr:{lr:.2e} - beta: {beta:.2e}')

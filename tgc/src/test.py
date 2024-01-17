@@ -66,7 +66,7 @@ def test(model, save_path: Path | str, Xt, Xv, X, Y):
             pbar.write(f'{n_mismatch} out of {len(X[0])} samples differ for {ckpt.name}; HLS error: {std_keras:.2f}/{std_cutoff_keras:.2f}')
             pbar.write(f'Sample: {pred[mismatch!=0][:5]}, {proxy_pred[mismatch!=0][:5]}')
 
-        results[ckpt.name] = {'std': std_keras, 'std_cutoff': std_cutoff_keras, 'bops': bops, 'hls_std': std_proxy, 'hls_std_cutoff': std_cutoff_proxy}
+        results[ckpt.name] = {'std': float(std_keras), 'std_cutoff': float(std_cutoff_keras), 'bops': int(bops), 'hls_std': float(std_proxy), 'hls_std_cutoff': float(std_cutoff_proxy)}
         pbar.set_description(f'Test accuracy: {std_keras:.2f}/{std_cutoff_keras:.2f} @ {bops:.0f} BOPs')
 
     with open(save_path / 'test_acc.json', 'w') as f:

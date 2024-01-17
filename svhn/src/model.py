@@ -97,13 +97,13 @@ def get_model(
         keras.layers.InputLayer(input_shape=(32, 32, 3)),
         HQuantize(beta=0, name='q_inp'),
 
-        HConv2DBatchNorm(16, (3, 3), padding='valid', name='conv1', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[0], kq_conf=ker_q_conf_c),
+        HConv2D(16, (3, 3), padding='valid', name='conv1', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[0], kq_conf=ker_q_conf_c),
         PMaxPool2D((2, 2), name='maxpool1'),
 
-        HConv2DBatchNorm(16, (3, 3), padding='valid', name='conv2', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[1], kq_conf=ker_q_conf_c),
+        HConv2D(16, (3, 3), padding='valid', name='conv2', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[1], kq_conf=ker_q_conf_c),
         PMaxPool2D((2, 2), name='maxpool2'),
 
-        HConv2DBatchNorm(24, (3, 3), padding='valid', name='conv3', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[2], kq_conf=ker_q_conf_c),
+        HConv2D(24, (3, 3), padding='valid', name='conv3', activation='relu', **cfg(), parallel_factor=conf.model.parallel_factors[2], kq_conf=ker_q_conf_c),
         PMaxPool2D((2, 2), name='maxpool3'),
 
         PFlatten(),
@@ -112,7 +112,7 @@ def get_model(
 
         HDenseBatchNorm(64, name='dense2', activation='relu', **cfg(), kq_conf=ker_q_conf_d),
 
-        HDenseBatchNorm(10, name='output', **cfg()),
+        HDenseBatchNorm(10, name='output', **cfg(), kq_conf=ker_q_conf_d),
     ])
 
     for l in model.layers:

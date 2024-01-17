@@ -67,6 +67,10 @@ if __name__ == '__main__':
         test(model_hgq, Path(conf.save_path), X_train, X_val, X_test, y_test)
         bops_computed = True
 
+    if 'syn' in args.run or 'all' in args.run:
+        print('Phase: syn')
+        syn_test(Path(args.save_path), X_test, y_test, N=None, softmax=args.softmax)
+
     # if 'all' in args.run or 'syn' in args.run:
     #     print('Phase: syn')
     #     print(f'Using checkpoint: {ckpt_hgq}')

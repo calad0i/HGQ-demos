@@ -1,0 +1,25 @@
+seed: 42
+data_path: 'data/inp_data.zst'
+save_path: '/tmp/jet_classifier_const1'
+
+model:
+  a_bw_l1_reg: 0.000002
+  w_bw_l1_reg: 0.000002
+  w_init_bw: 2
+  a_init_bw: 2
+  uniform: false
+  n_hidden_layers: 3
+
+beta:
+  intervals:
+    - epochs: 0
+      betas: [1.2e-5,1.2e-5]
+      interpolation: linear
+
+train:
+  lr: 0.005
+  bsz: 33200
+  epochs: 5000
+  val_split: 0.15
+  calibrated_bops: false
+  

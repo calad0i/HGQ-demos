@@ -36,6 +36,7 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
                 part='xcvu9p-flga2104-2L-e',
                 clock_period=5,
                 io_type='io_stream',
+                backend='vitis',
             )
 
             model_hls.compile()

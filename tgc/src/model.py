@@ -95,6 +95,19 @@ def get_model_hgq(mask12, mask13, mask23, conf):
         minmax_record=True
     )
 
+    act_q_conf_hg2 = dict(
+        init_bw=init_bw_k,
+        skip_dims='batch',
+        rnd_strategy='auto',  # 'auto': 'floor' for non-activation layer without bias, 'standard_round' otherwise
+        exact_q_value=False,
+        dtype=None,
+        bw_clip=(-23, 6),
+        trainable=True,
+        regularizer=MonoL1(l1_act),
+        minmax_record=True
+    )
+
+
     set_default_paq_conf(act_q_conf)
 
     aio_c = {
@@ -115,7 +128,7 @@ def get_model_hgq(mask12, mask13, mask23, conf):
     _input_m2 = signature('M2')(input_m2)
     _input_m3 = signature('M3')(input_m3)
 
-    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m1)
+    m1_c = HConv1D(1, 3, strides=1, name='m1_conv', **aio_c, paq_conf=act_q_conf_hg2)(_input_m1)
     m2_c = HConv1D(1, 3, strides=1, name='m2_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m2)
     m3_c = HConv1D(1, 3, strides=1, name='m3_conv', **aio_c, paq_conf=act_q_conf_hg)(_input_m3)
 
@@ -126,14 +139,14 @@ def get_model_hgq(mask12, mask13, mask23, conf):
     m1_a = HActivation('tanh', beta=beta, name='act1')(m1_c)
     m1_o = HDense(50, name='map12', kernel_constraint=Diag(mask12) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m1_a)
 
-    m2_a = HActivation('tanh', beta=beta, name='act12')(HAdd(name='add12', beta=beta)([m1_o, m2_c]))
+    m2_a = HActivation('tanh', beta=beta, name='act12')(HAdd(name='add12', beta=beta, paq_conf=act_q_conf_hg2)([m1_o, m2_c]))
     m2_o = HDense(50, name='map23', kernel_constraint=Diag(mask23) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m2_a)
 
     m1_o2 = HDense(50, name='map13', kernel_constraint=Diag(mask13) if mask12 is not None else None, activation=None, use_bias=False, **aio_d)(m1_a)
-    m3_o = (HAdd(name='add13', beta=beta)([m1_o2, m3_c]))
-    m3_o = (HAdd(name='add23', beta=beta)([m2_o, m3_o]))
+    m3_o = (HAdd(name='add13', beta=beta, paq_conf=act_q_conf_hg)([m1_o2, m3_c]))
+    m3_o = (HAdd(name='add23', beta=beta, paq_conf=act_q_conf_hg2)([m2_o, m3_o]))
 
-    feature_out = HActivation('tanh', beta=beta, name='feature_out')(m3_o)
+    feature_out = HActivation('tanh', beta=beta, name='feature_out', paq_conf=act_q_conf_hg)(m3_o)
 
     dd1 = HDenseBatchNorm(28, name='t1', **aio_d, activation='relu', paq_conf=act_q_conf_hg)(feature_out)
     dd1 = HDenseBatchNorm(14, name='t2', **aio_d, activation='relu', paq_conf=act_q_conf_hg)(dd1)

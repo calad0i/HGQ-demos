@@ -42,8 +42,8 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
                 part='xcvu13p-fhga2104-2l-e',
                 clock_period=6.25,
                 io_type='io_parallel',
+                backend='vitis'
             )
-
             model_hls.compile()
 
         pred_keras = model.predict(X, verbose=0, batch_size=8192)  # type: ignore

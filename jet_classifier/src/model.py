@@ -35,12 +35,22 @@ def get_model(conf):
     set_default_kq_conf(ker_q_conf)
     set_default_paq_conf(act_q_conf)
 
-    model = keras.Sequential([
-        HQuantize(input_shape=(16,), name='inp_q', beta=0),
+    hidden_layers = [
         HDenseBatchNorm(int(64), activation='relu', name='dense_1', beta=0),
         HDenseBatchNorm(int(32), activation='relu', name='dense_2', beta=0),
         HDenseBatchNorm(int(32), activation='relu', name='dense_3', beta=0),
-        HDenseBatchNorm(5, name='dense_4', beta=0),
-    ])
+    ]
+
+    if conf.model.n_hidden_layers > 0:
+        hidden_layers = hidden_layers[-conf.model.n_hidden_layers:]
+    else:
+        hidden_layers = []
+
+    q_layer = HQuantize(input_shape=(16,), name='inp_q', beta=0)
+    hat = HDenseBatchNorm(5, name='dense_4', beta=0)
+
+    layers = [q_layer] + hidden_layers + [hat]
+
+    model = keras.Sequential(layers)
 
     return model

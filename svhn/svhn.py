@@ -69,15 +69,4 @@ if __name__ == '__main__':
 
     if 'syn' in args.run or 'all' in args.run:
         print('Phase: syn')
-        syn_test(Path(args.save_path), X_test, y_test, N=None, softmax=args.softmax)
-
-    # if 'all' in args.run or 'syn' in args.run:
-    #     print('Phase: syn')
-    #     print(f'Using checkpoint: {ckpt_hgq}')
-    #     if not bops_computed:
-    #         print('Computing BOPS...')
-    #         model_hgq.load_weights(ckpt_hgq)
-    #         _ = trace_minmax(model_hgq, X_train, bsz=2048, verbose=False)
-    #         bops = trace_minmax(model_hgq, X_val, bsz=2048, rst=False)
-    #         print(f'BOPS: {bops}')
-    #     syn_test(model_hgq, ckpt_hgq, conf.save_path, X_test, y_test)
+        syn_test(Path(conf.save_path), X_test, y_test, N=None)

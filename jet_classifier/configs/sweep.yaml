@@ -8,20 +8,21 @@ model:
   w_init_bw: 2
   a_init_bw: 2
   uniform: false
+  n_hidden_layers: 3
 
 beta:
   intervals:
     - epochs: 0
-      betas: [0,0]
+      betas: [3.e-7,3.e-7]
       interpolation: linear
     - epochs: 5000
-      betas: [1.e-6, 2.e-4]
+      betas: [1.e-6, 5.e-3]
       interpolation: log
 
 train:
   lr: 0.005
   bsz: 33200
-  epochs: 100000
+  epochs: 300000
   val_split: 0.15
   calibrated_bops: false
   

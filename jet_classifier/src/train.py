@@ -11,13 +11,13 @@ def train(model:keras.Model, X, Y, save_path: Path, conf):
     print('Compiling model...')
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics = ['accuracy']
-    opt = tf.keras.optimizers.Adam(learning_rate=conf.train.lr)
+    opt = tf.keras.optimizers.Adam()
     model.compile(optimizer=opt, loss=loss, metrics=metrics)
 
     print('Registering callbacks...')
     bops = FreeBOPs() if not conf.train.calibrated_bops else CalibratedBOPs(X[:conf.train.calibrated_bops])
-    cos = tf.keras.experimental.CosineDecay(conf.train.lr, conf.train.epochs)
-    sched = tf.keras.callbacks.LearningRateScheduler(cos)
+    cdr = keras.experimental.CosineDecayRestarts(**conf.train.cdr_args)
+    sched = tf.keras.callbacks.LearningRateScheduler(cdr)
     pbar = PBarCallback(metric='loss: {loss:.2f}/{val_loss:.2f} - acc: {accuracy:.2%}/{val_accuracy:.2%} - lr: {lr:.2e} - beta: {beta:.2e}')
     rst = ResetMinMax()
 

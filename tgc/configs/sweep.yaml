@@ -20,8 +20,6 @@ model:
   init_bw_a: 8
   init_bw_k: 8
   masking: true
-syn:
-  bias_accum: 2
 beta:
   intervals:
     - epochs: 0
@@ -30,3 +28,4 @@ beta:
     - epochs: 6000
       betas: [3.e-6, 6.e-4]
       interpolation: log
+

@@ -19,6 +19,7 @@ def get_data(data_path: Path, mmap_location = '/cpu:0', seed=42):
         with open(data_path, 'wb') as f:
             f.write(zstd.compress(buf))
     else:
+        os.makedirs(data_path.parent, exist_ok=True)
         with open(data_path, 'rb') as f:
             data = pkl.loads(zstd.decompress(f.read()))
 

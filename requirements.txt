@@ -1,8 +1,6 @@
 HGQ
 h5py>=3.8.0
-numpy
 scikit_learn
 scipy
-tensorflow==2.11
 tqdm
 zstd

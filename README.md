@@ -24,6 +24,14 @@ python jet_classifier.py -c configs/<config_file>.json -r all
 ```
 
 For more details, please run the script with the `-h` flag.
-You may want to modify the output paths in the configuration files. 
+You may want to modify the output paths in the configuration files.
+
+For synthsizing the models, you can use the `batch_synth.sh` script provided, which runs csynth, vsynth, and place&route, and keeps only the reports. Copy the script to the directory containing the tarballs of the hls projects, and run it.
+
+If you wish to do it manually, please notice the following:
+
+- When using dense-only network with `vivado_hls` with function pipeline, add `#pragma HLS INLINE recursive` in the entry function. This will greatly reduce the latency for HGQ trained models.
+- For the tgc Muon tracking demo, replace `#pragma HLS DATAFLOW` by `#pragma HLS PIPELINE`. Vitis/Vivado HLS does a bad job with dataflow for this model.
+  - Probably due to the fill buffer logic in for convolutional layers. 
 
 An ipython notebook containing the minimal code to run the HGQ is available [here](minimal/usage_example.ipynb)

@@ -11,8 +11,8 @@ from HGQ.proxy.fixed_point_quantizer import FixedPointQuantizer
 from HGQ.proxy.unary_lut import UnaryLUT
 import keras
 
-from hls4ml.optimization.distributed_arithmetic.resoure_surrogate import ResourceSurrogate
-from hls4ml.optimization.distributed_arithmetic import compiler_config
+# from hls4ml.optimization.distributed_arithmetic.resoure_surrogate import ResourceSurrogate
+# from hls4ml.optimization.distributed_arithmetic import compiler_config
 
 def syn_test(save_path: Path, X, Y, N=None, softmax=False):
 
@@ -24,7 +24,7 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
     co = {'FixedPointQuantizer': FixedPointQuantizer, 'UnaryLUT': UnaryLUT}
     (save_path / 'hls4ml_prjs').mkdir(exist_ok=True, parents=True)
 
-    compiler_config(backend='da4ml', enabled=True)
+    # compiler_config(backend='da4ml', enabled=True)
     for ckpt in pbar:
 
         model: keras.Model = keras.models.load_model(ckpt, custom_objects=co)  # type: ignore
@@ -43,10 +43,10 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
                 backend='vitis',
             )
             model_hls.write()
-            surrogate = ResourceSurrogate()
-            surrogate.scan(model_hls)
-            summary = surrogate.full_summary()
-            summary.to_csv(hls_prj_path/'surrogate.csv')
+            # surrogate = ResourceSurrogate()
+            # surrogate.scan(model_hls)
+            # summary = surrogate.full_summary()
+            # summary.to_csv(hls_prj_path/'surrogate.csv')
             #continue
             model_hls._compile()
 

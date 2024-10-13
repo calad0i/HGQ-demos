@@ -16,12 +16,23 @@ def get_data(data_path: Path, n_constituents, mmap_location='/cpu:0', seed=42):
 
     import h5py as h5
     with h5.File(data_path / '150c-train.h5') as f:
-        X_train_val = np.array(f['feature'][:16, :n_constituents])  # type: ignore
+        X_train_val = np.array(f['feature'])  # type: ignore
         y_train_val = np.array(f['label'])
     with h5.File(data_path / '150c-test.h5') as f:
-        X_test = np.array(f['feature'][:16, :n_constituents])  # type: ignore
+        X_test = np.array(f['feature'])  # type: ignore
         y_test = np.array(f['label'])
     labels = 'gqWZt'
+
+    X_train_val = X_train_val.astype(np.float32)
+    X_test = X_test.astype(np.float32)
+
+    scale = np.std(X_train_val, axis=(0, 1))
+    bias = np.mean(X_train_val, axis=(0, 1))
+    # print(f'scale: {scale}')
+    # print(f'bias: {bias}')
+
+    X_train_val = (X_train_val[:, :n_constituents] - bias) / scale
+    X_test = (X_test[:, :n_constituents] - bias) / scale
 
     # scaler = StandardScaler()
     # X_train_val = scaler.fit_transform(X_train_val)

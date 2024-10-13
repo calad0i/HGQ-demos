@@ -12,7 +12,7 @@ model:
 train:
   lr: 0
   bsz: 512
-  epochs: 2000
+  epochs: 3000
   cdr_args:
     initial_learning_rate: 2.e-3
     first_decay_steps: 100
@@ -23,8 +23,8 @@ train:
 beta:
   intervals:
     - epochs: 0
-      betas: [0.,1.e-6]
+      betas: [0.,3.e-7]
       interpolation: linear
-    - epochs: 500
-      betas: [1.e-6, 1.e-5]
+    - epochs: 300
+      betas: [3.e-7, 3.e-5]
       interpolation: log

@@ -28,15 +28,12 @@ def get_data(data_path: Path, n_constituents, mmap_location='/cpu:0', seed=42):
 
     scale = np.std(X_train_val, axis=(0, 1))
     bias = np.mean(X_train_val, axis=(0, 1))
-    # print(f'scale: {scale}')
-    # print(f'bias: {bias}')
 
     X_train_val = (X_train_val[:, :n_constituents] - bias) / scale
     X_test = (X_test[:, :n_constituents] - bias) / scale
 
-    # scaler = StandardScaler()
-    # X_train_val = scaler.fit_transform(X_train_val)
-    # X_test = scaler.transform(X_test)
+    # X_train_val = X_train_val[..., [5, 8, 11]]
+    # X_test = X_test[..., [5, 8, 11]]
 
     with tf.device(mmap_location):  # type: ignore
         X_train_val = tf.convert_to_tensor(X_train_val, dtype=tf.float16)

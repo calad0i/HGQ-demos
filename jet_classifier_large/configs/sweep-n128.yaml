@@ -5,26 +5,26 @@ n_constituents: 128
 
 save_path: /tmp/jet_classifier_large_128
 model:
-  init_bw_a: 7
-  init_bw_k: 7
+  init_bw_a: 9
+  init_bw_k: 6
   k_bw_l1_reg: 5.e-7
   a_bw_l1_reg: 5.e-7
 train:
   lr: 0
   bsz: 512
-  epochs: 3000
+  epochs: 5000
   cdr_args:
-    initial_learning_rate: 2.e-3
-    first_decay_steps: 100
+    initial_learning_rate: 5.e-3
+    first_decay_steps: 50
     t_mul: 1.0 # fixed, cannot be changed here
     m_mul: 1.0
-    alpha: 1.5e-6
-    alpha_steps: 8 # #epoch at lowest lr before next restart. Total cycle = first_decay_steps - alpha_steps
+    alpha: 5.e-6
+    alpha_steps: 5 # #epoch at lowest lr before next restart. Total cycle = first_decay_steps - alpha_steps
 beta:
   intervals:
     - epochs: 0
-      betas: [0.,3.e-7]
+      betas: [0.2e-7, 3.e-7]
       interpolation: linear
-    - epochs: 300
+    - epochs: 500
       betas: [3.e-7, 3.e-5]
       interpolation: log

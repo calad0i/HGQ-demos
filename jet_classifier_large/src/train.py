@@ -10,12 +10,14 @@ from nn_utils import PBarCallback, save_history
 from nn_utils import BetaScheduler, PeratoFront
 
 from HGQ.bops import FreeBOPs, ResetMinMax
-
+from omegaconf import OmegaConf
 
 def train_hgq(model, X, Y, Xs, Ys, conf):
 
     save_path = Path(conf.save_path)
     save_path.mkdir(parents=True, exist_ok=True)
+    with open(save_path / 'config.yaml', 'w') as f:
+        OmegaConf.save(conf, f)
 
     pred = model.predict(Xs, batch_size=2048, verbose=0)
     hgq_acc_1 = np.mean(np.argmax(pred, axis=1) == Ys.numpy().ravel())

@@ -1,9 +1,10 @@
 seed: 42
-datapath: '/data/massive1/fastml_data/jet150/'
+datapath: '/storage/af/user/chsun/data/jet150'
 val_split: 0.1
 n_constituents: 32
+pt_eta_phi: False
 
-save_path: /tmp/jet_classifier_large_32
+save_path: /storage/af/user/chsun/outputs/jet_classifier_large_32
 model:
   init_bw_a: 9
   init_bw_k: 6
@@ -17,7 +18,7 @@ train:
     initial_learning_rate: 5.e-3
     first_decay_steps: 50
     t_mul: 1.0 # fixed, cannot be changed here
-    m_mul: 1.0
+    m_mul: 0.93
     alpha: 5.e-6
     alpha_steps: 5 # #epoch at lowest lr before next restart. Total cycle = first_decay_steps - alpha_steps
 beta:

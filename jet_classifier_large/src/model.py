@@ -1,7 +1,7 @@
 import numpy as np
 
 import tensorflow as tf
-from tensorflow import keras
+import keras
 
 from HGQ.utils import MonoL1
 from HGQ import set_default_paq_conf, set_default_kq_conf
@@ -11,11 +11,11 @@ from HGQ.layers.conv import HConv2DBatchNorm
 from HGQ.layers.passive_layers import PPermute
 from HGQ.layers import HAdd
 
-
 def get_model(
     conf,
 ):
 
+    n = 3 if conf.pt_eta_phi else 16
     ker_q_conf = dict(
         init_bw=conf.model.init_bw_a,
         skip_dims=None,
@@ -42,14 +42,14 @@ def get_model(
     set_default_paq_conf(act_q_conf)
     set_default_kq_conf(ker_q_conf)
 
-    inp = keras.layers.Input((conf.n_constituents, 16))
+    inp = keras.layers.Input((conf.n_constituents, n))
     x = HQuantize(beta=0)(inp)
     x2 = HQuantize(beta=0)(inp)
     # x = HBatchNormalization()(x)
     # inp_q_mask = MaskDropout(0.1)(inp_q_mask)
 
     x = HDenseBatchNorm(16, activation='relu', beta=0)(x)
-    x = HDenseBatchNorm(16, activation='relu', beta=0)(x)
+    x = HDenseBatchNorm(n, activation='relu', beta=0)(x)
 
     x = PPermute((2, 1))(x)
     x = HDenseBatchNorm(conf.n_constituents, activation='relu', beta=0)(x)

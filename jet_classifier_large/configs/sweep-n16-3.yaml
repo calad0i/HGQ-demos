@@ -1,10 +1,10 @@
 seed: 42
 datapath: '/storage/af/user/chsun/data/jet150'
 val_split: 0.1
-n_constituents: 128
-pt_eta_phi: False
+n_constituents: 16
+pt_eta_phi: True
 
-save_path: /storage/af/user/chsun/outputs/jet_classifier_large_128
+save_path: /storage/af/user/chsun/outputs/jet_classifier_large_16-3
 model:
   init_bw_a: 9
   init_bw_k: 6

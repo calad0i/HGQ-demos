@@ -16,7 +16,7 @@ from pathlib import Path
 
 from nn_utils import set_seed, get_best_ckpt
 from src.dataloader import get_data
-from src.model import get_model
+from src.model_mlp import get_model
 from src.train import train_hgq
 from src.test import test
 from src.syn_test import syn_test

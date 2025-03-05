@@ -15,6 +15,10 @@ To prepare the data, download the datasets from the following links:
   - Place all three files (`train_32x32.mat`, `test_32x32.mat`, `extra_32x32.mat`) in the `data/svhn` directory.
 - TGC: https://huggingface.co/datasets/Calad/fake-TGC/blob/main/fake_TGC_0.041_pruned.h5
   - Place the hdf5 file in the `data/tgc` directory.
+- Jet Classifier Large:
+  - Fetch https://zenodo.org/records/3602260, prepare the dataset with `jet_classifier_large/prepare_dataset.py -i <path_to_files> -o <output_path>` to `train.h5` and `test.h5`, and place them in some directory.
+  - Update the `datapath` in the configuration files to point to the directory containing the `train.h5` and `test.h5` files.
+  - Replace `model.py` with `model_*.py` to use the MLP and/or fp32 models. The default is quantized MLP-Mixer.
 
 To execute the demos, `cd` into the individual demo directory run the corresponding python script. For example, to run the demo for the jet classifier, execute the following commands:
 

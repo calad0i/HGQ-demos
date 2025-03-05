@@ -12,8 +12,8 @@ from HGQ.proxy.fixed_point_quantizer import FixedPointQuantizer
 from HGQ.proxy.unary_lut import UnaryLUT
 import keras
 
-from hls4ml.optimization.distributed_arithmetic.resoure_surrogate import ResourceSurrogate
-from hls4ml.optimization.distributed_arithmetic import compiler_config
+# from hls4ml.optimization.distributed_arithmetic.resoure_surrogate import ResourceSurrogate
+# from hls4ml.optimization.distributed_arithmetic import compiler_config
 
 
 def syn_test(save_path: Path, X, Y, N=None, softmax=False):
@@ -29,7 +29,7 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
     co = {'FixedPointQuantizer': FixedPointQuantizer, 'UnaryLUT': UnaryLUT}
     (save_path / 'hls4ml_prjs').mkdir(exist_ok=True, parents=True)
 
-    compiler_config(backend='da4ml', enabled=True)
+    # compiler_config(backend='da4ml', enabled=True)
     for ckpt in pbar:
 
         model: keras.Model = keras.models.load_model(ckpt, custom_objects=co)  # type: ignore
@@ -48,10 +48,10 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
                 backend='vitis',
             )
             model_hls.write()
-            surrogate = ResourceSurrogate()
-            surrogate.scan(model_hls)
-            summary = surrogate.full_summary()
-            summary.to_csv(hls_prj_path / 'surrogate.csv')
+            # surrogate = ResourceSurrogate()
+            # surrogate.scan(model_hls)
+            # summary = surrogate.full_summary()
+            # summary.to_csv(hls_prj_path / 'surrogate.csv')
             # continue
             model_hls._compile()
 
@@ -59,9 +59,9 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
         pred_hls = model_hls.predict(X[:N])
         hls_acc = np.mean(np.argmax(pred_hls, axis=1) == Y.ravel())
         print(f'HLS accuracy: {hls_acc:.5%}')
+        ndiff = int(np.sum(np.any(pred_hls - pred_keras != 0, axis=1)))
         results[ckpt.name]['t_hls_acc'] = hls_acc
-
-        ndiff = np.sum(np.any(pred_hls - pred_keras != 0, axis=1))
+        results[ckpt.name]['ndiff'] = ndiff
 
         if ndiff > 0:
             print(f'{ndiff} out of {N} samples differ for {ckpt.name}')

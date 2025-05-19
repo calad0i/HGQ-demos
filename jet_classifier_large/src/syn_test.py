@@ -37,9 +37,10 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
         hls_prj_path = save_path / f'hls4ml_prjs/{ckpt.stem.split("-")[0]}'
 
         with shutup:
+            # latency strategy for this model won't meet II=1 requirement in general
             model_hls = convert_from_keras_model(
                 model,
-                hls_config={'Model': {'Precision': 'ap_fixed<1,0>', 'ReuseFactor': 1}},
+                hls_config={'Model': {'Precision': 'ap_fixed<1,0>', 'ReuseFactor': 1, 'Strategy': 'distributed_arithmetic'}},
                 output_dir=str(hls_prj_path),
                 project_name='jet_classifier_large',
                 part='xcvu9p-flga2104-2L-e',
@@ -48,11 +49,6 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
                 backend='vitis',
             )
             model_hls.write()
-            # surrogate = ResourceSurrogate()
-            # surrogate.scan(model_hls)
-            # summary = surrogate.full_summary()
-            # summary.to_csv(hls_prj_path / 'surrogate.csv')
-            # continue
             model_hls._compile()
 
         pred_keras = model.predict(X[:N], verbose=0, batch_size=16384)  # type: ignore
@@ -60,7 +56,7 @@ def syn_test(save_path: Path, X, Y, N=None, softmax=False):
         hls_acc = np.mean(np.argmax(pred_hls, axis=1) == Y.ravel())
         print(f'HLS accuracy: {hls_acc:.5%}')
         ndiff = int(np.sum(np.any(pred_hls - pred_keras != 0, axis=1)))
-        results[ckpt.name]['t_hls_acc'] = hls_acc
+        results[ckpt.name]['hls_acc'] = hls_acc
         results[ckpt.name]['ndiff'] = ndiff
 
         if ndiff > 0:

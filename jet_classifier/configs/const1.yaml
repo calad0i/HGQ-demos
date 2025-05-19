@@ -7,8 +7,10 @@ model:
   w_bw_l1_reg: 0.000002
   w_init_bw: 2
   a_init_bw: 2
-  uniform: false
+  uniform_a: false
+  uniform_w: false
   n_hidden_layers: 3
+  scale: 1.0
 
 beta:
   intervals:

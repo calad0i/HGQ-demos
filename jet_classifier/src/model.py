@@ -11,7 +11,7 @@ def get_model(conf):
 
     ker_q_conf: dict = dict(
         init_bw=conf.model.w_init_bw,
-        skip_dims=None if not conf.model.uniform else 'all',
+        skip_dims=None if not conf.model.uniform_w else 'all',
         rnd_strategy='standard_round',
         exact_q_value=True,
         dtype=None,
@@ -22,7 +22,7 @@ def get_model(conf):
 
     act_q_conf: dict = dict(
         init_bw=conf.model.a_init_bw,
-        skip_dims=(0,) if not conf.model.uniform else 'all',
+        skip_dims=(0,) if not conf.model.uniform_a else 'all',
         rnd_strategy='auto',  # 'auto': 'floor' for layer without bias, 'standard_round' otherwise
         exact_q_value=True,
         dtype=None,
@@ -36,9 +36,10 @@ def get_model(conf):
     set_default_paq_conf(act_q_conf)
 
     hidden_layers = [
-        HDenseBatchNorm(int(64), activation='relu', name='dense_1', beta=0),
-        HDenseBatchNorm(int(32), activation='relu', name='dense_2', beta=0),
-        HDenseBatchNorm(int(32), activation='relu', name='dense_3', beta=0),
+        HDenseBatchNorm(round(64 * conf.model.scale), activation='relu', name='dense_1', beta=0),
+        HDenseBatchNorm(round(32 * conf.model.scale), activation='relu', name='dense_2', beta=0),
+        HDenseBatchNorm(round(32 * conf.model.scale), activation='relu', name='dense_3', beta=0),
+        HDenseBatchNorm(round(32 * conf.model.scale), activation='relu', name='dense_extra', beta=0),
     ]
 
     if conf.model.n_hidden_layers > 0:

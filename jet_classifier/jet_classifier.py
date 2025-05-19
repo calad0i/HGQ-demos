@@ -7,6 +7,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import tensorflow as tf
 tf.get_logger().setLevel('ERROR')
+for gpu in tf.config.experimental.list_physical_devices('GPU'):
+    tf.config.experimental.set_memory_growth(gpu, True)
 import mplhep as hep
 hep.style.use(hep.style.CMS)
 

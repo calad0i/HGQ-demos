@@ -9,15 +9,15 @@ from nn_utils import plot_history, trace_minmax, load_history
 
 
 def test(model, save_path: Path, Xt, X, Y):
-    history = load_history(save_path / 'history.pkl.zst')
+    #history = load_history(save_path / 'history.pkl.zst')
 
-    fig, ax = plot_history(history, ('accuracy', 'val_accuracy'))
-    ax.set_ylim(0.7, 0.77)
-    plt.savefig(save_path / 'accuracy.pdf', dpi=300)
+    #fig, ax = plot_history(history, ('accuracy', 'val_accuracy'))
+    #ax.set_ylim(0.7, 0.77)
+    #plt.savefig(save_path / 'accuracy.pdf', dpi=300)
 
-    fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
-    ax.set_ylim(np.min(history['bops']) * 0.7, np.min(history['bops']) * 2)
-    plt.savefig(save_path / 'bops.pdf', dpi=300)
+#    fig, ax = plot_history(history, ('bops',), ylabel='BOPs')
+ #   ax.set_ylim(np.min(history['bops']) * 0.7, np.min(history['bops']) * 2)
+  #  plt.savefig(save_path / 'bops.pdf', dpi=300)
 
     (save_path / 'proxy_models').mkdir(exist_ok=True, parents=True)
     results = {}
